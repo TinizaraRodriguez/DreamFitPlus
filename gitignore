@@ -1,0 +1,29 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Dependencias y compilados
+node_modules/
+dist/
+build/
+
+# Secretos (nunca subir)
+.env
+.env.*
+*.pem
+*.key
+
+# Archivos generados / datos personales
+*.zip
+dreamfit-*.json
+export*.json
+*.log
+
+# Netlify
+.netlify/
