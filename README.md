@@ -86,6 +86,3 @@ Es un sitio estático: sirve cualquier alojamiento. Con Netlify basta arrastrar 
 - Favoritos, filtros y calorías en recetas.
 - Fusión por entradas (en vez de por bloque) para datos en forma de lista.
 
-## Licencia
-
-Añade aquí la licencia que elijas (por ejemplo MIT) antes de hacer público el repositorio.
