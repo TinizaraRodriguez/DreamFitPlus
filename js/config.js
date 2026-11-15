@@ -4,5 +4,6 @@
 // NUNCA pongas aquí la clave "secret" ni la "service_role".
 window.DREAMFIT_CONFIG = {
     SUPABASE_URL: 'https://qyiyrnjvcusshxtvrkns.supabase.co',
-    SUPABASE_ANON_KEY: 'sb_publishable_saSXEYwEi5YrlHglezbZwQ_cXcQ2Z2u'
+    SUPABASE_ANON_KEY: 'sb_publishable_saSXEYwEi5YrlHglezbZwQ_cXcQ2Z2u',
+    GOOGLE_LOGIN: true
 };

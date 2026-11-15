@@ -13,7 +13,12 @@ function loadScript(src) {
 }
 const normEmail = e => String(e || '').trim().toLowerCase();
 const appUrl = () => location.origin + location.pathname;
-const mapUser = u => u ? { id: u.id, email: u.email, name: (u.user_metadata && u.user_metadata.name) || '' } : null;
+const mapUser = u => {
+    if (!u) return null;
+    const m = u.user_metadata || {}, p = (u.app_metadata && u.app_metadata.providers) || [];
+    // name: lo que escribió al registrarse; full_name/name: lo que envía Google
+    return { id: u.id, email: u.email, name: (m.name || m.full_name || '').trim(), providers: p.length ? p : ['email'] };
+};
 
 const AUTH_ERRORS = [
     [/invalid login credentials|invalid_credentials/i, 'Email o contraseña incorrectos.'],
@@ -24,6 +29,8 @@ const AUTH_ERRORS = [
     [/rate limit|too many|over_.*_rate_limit/i, 'Demasiados intentos. Espera unos minutos y vuelve a probar.'],
     [/signup.*disabled|signups not allowed/i, 'Ahora mismo no se permiten registros nuevos.'],
     [/invalid.*email|unable to validate email|email_address_invalid/i, 'El email no parece válido.'],
+    [/provider is not enabled|unsupported provider|validation_failed/i, 'El acceso con Google aún no está activado en el servidor.'],
+    [/access_denied|user cancelled|cancell?ed/i, 'Has cancelado el acceso con Google.'],
     [/failed to fetch|network|load failed/i, 'Sin conexión con el servidor. Comprueba tu internet e inténtalo de nuevo.'],
     [/DEMO:/, null]
 ];
@@ -58,6 +65,10 @@ const SupabaseBackend = {
         const { data, error } = await this.client.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return mapUser(data.user);
+    },
+    async signInWithGoogle() { // redirige a Google; al volver, getSession recoge la sesión desde la dirección
+        const { error } = await this.client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: appUrl() } });
+        if (error) throw error;
     },
     async signOut() { const { error } = await this.client.auth.signOut({ scope: 'local' }); if (error) throw error; }, // solo este dispositivo
     async sendReset(email) {
@@ -138,9 +149,18 @@ const Auth = {
         else if (localStorage.getItem('demoauth_on')) { this.mode = 'demo'; this.backend = DemoBackend; }
         else return;
         if (/type=recovery/.test(location.hash)) this.recovery = true;
+        // Si Google (o Supabase) devuelve un error, llega en la dirección: lo guardamos para mostrarlo en la pantalla de entrada
+        const q = new URLSearchParams(location.search + '&' + location.hash.replace(/^#/, ''));
+        if (q.get('error') || q.get('error_description')) {
+            this.urlError = { code: q.get('error_code') || q.get('error'), message: q.get('error_description') || '' };
+            history.replaceState(null, '', location.pathname);
+        }
         this.user = await this.backend.init(cfg);
     },
     onRecovery() { this.recovery = true; if (this.booted) AuthUI.show('recovery'); },
+    googleEnabled() { return this.mode === 'supabase' && (window.DREAMFIT_CONFIG || {}).GOOGLE_LOGIN === true; },
+    signInWithGoogle() { return this.backend.signInWithGoogle(); },
+    hasPassword() { const p = this.user && this.user.providers; return !p || p.includes('email'); },
     signUp(d) { return this.backend.signUp(d); },
     signIn(d) { return this.backend.signIn(d); },
     signOut() { return this.backend.signOut(); },
@@ -159,6 +179,7 @@ const AuthUI = {
         const head = '<div class="text-center space-y-1"><div class="mx-auto w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl"><i class="fa-solid fa-dumbbell"></i></div><h1 class="text-lg font-bold text-slate-900">Mi Plan Fitness</h1></div>';
         this.el('auth-overlay').classList.remove('hidden');
         this.el('auth-card').innerHTML = head + demo + (this.views[view] ? this.views[view].call(this, o) : '');
+        if (view === 'login' && Auth.urlError) { this.setError(authMsg(Auth.urlError)); Auth.urlError = null; }
         const first = this.el('auth-card').querySelector('input:not([type=checkbox]), button.auth-primary');
         if (first && view !== 'loading') first.focus();
     },
@@ -173,6 +194,24 @@ const AuthUI = {
         const i = this.el(id), show = i.type === 'password';
         i.type = show ? 'text' : 'password'; btn.innerText = show ? 'Ocultar' : 'Mostrar'; btn.setAttribute('aria-pressed', show);
     },
+    googleBlock(registering) {
+        if (!Auth.googleEnabled()) return '';
+        return `<div class="space-y-2">
+            <button type="button" onclick="AuthUI.google()" class="auth-google w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-slate-50 disabled:opacity-50">
+                <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+                Continuar con Google
+            </button>
+            ${registering ? '<p class="text-[11px] text-slate-500 text-center">Al continuar aceptas que tus datos de entreno, comidas y medidas se guarden en la nube de esta app. Puedes borrarlos cuando quieras desde tu perfil.</p>' : ''}
+            <div class="flex items-center gap-2 text-[11px] text-slate-400" aria-hidden="true"><span class="flex-1 h-px bg-slate-200"></span>o con tu email<span class="flex-1 h-px bg-slate-200"></span></div>
+        </div>`;
+    },
+    async google() {
+        if (this.busy) return;
+        this.setError(''); this.busy = true;
+        const b = this.el('auth-card').querySelector('button.auth-google'); if (b) b.disabled = true;
+        try { await Auth.signInWithGoogle(); } // la página se va a Google; si vuelve aquí es porque falló
+        catch (err) { this.busy = false; if (b) b.disabled = false; this.setError(authMsg(err)); }
+    },
     err: '<p id="auth-error" role="alert" class="text-xs text-red-600 min-h-[1rem]"></p>',
     primary: txt => `<button type="submit" class="auth-primary w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700 disabled:opacity-50">${txt}</button>`,
     link: (fn, txt) => `<button type="button" onclick="${fn}" class="text-xs text-emerald-700 font-semibold underline cursor-pointer">${txt}</button>`,
@@ -181,6 +220,7 @@ const AuthUI = {
         error(o) { return `<p role="alert" class="text-sm text-red-600 text-center">${escapeHtml(o.msg || 'Error')}</p><button onclick="location.reload()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Reintentar</button>`; },
         login() {
             return `<h2 class="font-bold text-base text-slate-900">Inicia sesión</h2>
+            ${this.googleBlock(false)}
             <form onsubmit="AuthUI.submit(event)" class="space-y-3" novalidate>
                 ${this.field('email', 'Email', 'email', 'autocomplete="email" inputmode="email" required')}
                 ${this.password('password', 'Contraseña', 'current-password')}
@@ -190,11 +230,12 @@ const AuthUI = {
         },
         register() {
             return `<h2 class="font-bold text-base text-slate-900">Crea tu cuenta</h2>
+            ${this.googleBlock(true)}
             <form onsubmit="AuthUI.submit(event)" class="space-y-3" novalidate>
                 ${this.field('name', 'Nombre', 'text', 'autocomplete="given-name" maxlength="40" required')}
                 ${this.field('email', 'Email', 'email', 'autocomplete="email" inputmode="email" required')}
                 ${this.password('password', 'Contraseña', 'new-password', `<p class="text-[11px] text-slate-500 mt-1">Mínimo ${MIN_PASSWORD} caracteres.</p>`)}
-                <label class="flex items-start gap-2 text-[11px] text-slate-600"><input type="checkbox" id="consent" name="consent" class="mt-0.5 w-4 h-4"><span>Acepto que mis datos de entreno, comidas y medidas se guarden en la nube de esta app. Puedo borrarlos cuando quiera desde Progreso → Cuenta.</span></label>
+                <label class="flex items-start gap-2 text-[11px] text-slate-600"><input type="checkbox" id="consent" name="consent" class="mt-0.5 w-4 h-4"><span>Acepto que mis datos de entreno, comidas y medidas se guarden en la nube de esta app. Puedo borrarlos cuando quiera desde tu perfil.</span></label>
                 ${this.err}${this.primary('Crear cuenta')}
             </form>
             <div class="text-center">${this.link("AuthUI.show('login')", '¿Ya tienes cuenta? Entrar')}</div>`;
@@ -269,7 +310,7 @@ const AuthUI = {
     }
 };
 
-// ---------- Tarjeta «Cuenta» (Progreso) ----------
+// ---------- Tarjeta «Cuenta» (pestaña Perfil) ----------
 function updateHeaderAvatar() {
     const b = document.getElementById('hdr-perfil');
     if (!b) return;
@@ -289,13 +330,14 @@ function renderAccount() {
         <div class="flex items-center gap-3"><div class="w-10 h-10 shrink-0 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center">${ini}</div><div class="min-w-0"><p class="font-bold text-sm text-slate-900 truncate">${escapeHtml(u.name || 'Sin nombre')}</p><p class="text-xs text-slate-500 truncate">${escapeHtml(u.email)}</p></div></div>
         ${Auth.mode === 'demo' ? '<p class="text-[11px] bg-amber-50 text-amber-800 rounded-lg p-2">Cuenta de demostración (solo en este navegador).</p>' : ''}
         ${Sync.enabled ? '<div class="flex items-center justify-between gap-2"><p id="sync-status" role="status" class="text-[11px] text-slate-500"></p><button onclick="syncNowUI()" class="text-[11px] text-emerald-700 font-semibold underline cursor-pointer whitespace-nowrap">Sincronizar ahora</button></div>' : ''}
-        <div class="flex gap-2 text-xs"><button onclick="logout()" class="flex-1 bg-slate-800 text-white font-bold py-2.5 rounded-xl cursor-pointer">Cerrar sesión</button><button onclick="togglePwForm()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl cursor-pointer">Cambiar contraseña</button></div>
-        <form id="pw-form" onsubmit="changePassword(event)" class="hidden space-y-2" novalidate>
+        ${(u.providers || []).includes('google') ? '<p class="text-[11px] text-slate-500"><i class="fa-brands fa-google mr-1"></i>Has entrado con Google' + (Auth.hasPassword() ? ' (y también tienes contraseña)' : '') + '.</p>' : ''}
+        <div class="flex gap-2 text-xs"><button onclick="logout()" class="flex-1 bg-slate-800 text-white font-bold py-2.5 rounded-xl cursor-pointer">Cerrar sesión</button>${Auth.hasPassword() ? '<button onclick="togglePwForm()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl cursor-pointer">Cambiar contraseña</button>' : ''}</div>
+        ${Auth.hasPassword() ? `<form id="pw-form" onsubmit="changePassword(event)" class="hidden space-y-2" novalidate>
             <label for="pw-new" class="text-xs font-semibold text-slate-600">Nueva contraseña (mínimo ${MIN_PASSWORD})</label>
             <input id="pw-new" type="password" autocomplete="new-password" minlength="${MIN_PASSWORD}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
             <p id="pw-error" role="alert" class="text-xs text-red-600"></p>
             <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Guardar contraseña</button>
-        </form>
+        </form>` : ''}
         <button onclick="deleteAccount()" class="text-[11px] text-red-600 underline cursor-pointer">Eliminar mi cuenta y mis datos</button>`;
     if (Sync.enabled) updateSyncStatus();
 }
