@@ -37,8 +37,17 @@ Views.addTab({
             </div>
         </div>
 
+        <div id="ai-extra" class="hidden">
+            <label for="user-restrictions" class="block font-semibold text-emerald-200 mb-1">Alergias o restricciones (opcional, solo para la IA):</label>
+            <input type="text" id="user-restrictions" maxlength="150" placeholder="Ej: sin gluten, alérgico a frutos secos, vegetariano..." class="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-600/50 rounded-xl text-white placeholder-emerald-400/60">
+        </div>
+
+        <button id="ai-btn" onclick="generateAiRecipe()" class="hidden w-full bg-amber-300 hover:bg-amber-200 text-slate-950 font-bold py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generar con IA
+        </button>
+
         <button onclick="generateCustomRecipe()" class="w-full bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
-            <i class="fa-solid fa-kitchen-set"></i> Generar ideas
+            <i class="fa-solid fa-kitchen-set"></i> Generar ideas (básico)
         </button>
     </div>
 

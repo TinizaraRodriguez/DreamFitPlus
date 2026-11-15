@@ -48,12 +48,70 @@ function saveGenerated(i) {
     showToast('¡Receta guardada!');
 }
 
+// ---------- Generador con IA ----------
+let aiState = { items: [], goal: 'dinner', busy: false };
+function updateAiUI() {
+    const on = AiRecipes.enabled();
+    ['ai-extra', 'ai-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); });
+}
+async function generateAiRecipe(more = false) {
+    if (aiState.busy) return;
+    const raw = document.getElementById('user-ingredients').value.trim();
+    if (!raw) { showToast('Escribe al menos 2 o 3 ingredientes.'); return; }
+    const goal = document.getElementById('user-goal').value, flavor = document.getElementById('user-flavor').value;
+    const restrictions = (document.getElementById('user-restrictions') || { value: '' }).value.trim();
+    const box = document.getElementById('custom-recipe-result'), btn = document.getElementById('ai-btn');
+    const avoid = more ? aiState.items.map(r => r.title) : [];
+    aiState.busy = true; btn.disabled = true; btn.dataset.t = btn.dataset.t || btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pensando…';
+    box.classList.remove('hidden');
+    box.innerHTML = '<p class="text-xs text-slate-500" role="status">La IA está preparando tus recetas… puede tardar unos segundos.</p>';
+    try {
+        const d = await AiRecipes.generate({ ingredients: raw, goal, flavor, restrictions, avoid });
+        aiState = { items: d.recipes, goal, flavor, remaining: d.remaining, limit: d.limit, busy: false };
+        renderAiResult();
+    } catch (e) {
+        aiState.busy = false;
+        box.innerHTML = `<p role="alert" class="text-xs text-red-600">${escapeHtml(AiRecipes.message(e))}</p>
+            <button onclick="generateCustomRecipe()" class="w-full text-xs text-emerald-700 font-bold py-2 bg-emerald-50 rounded-xl cursor-pointer">Usar el generador básico (sin IA)</button>`;
+    } finally { btn.disabled = false; btn.innerHTML = btn.dataset.t; aiState.busy = false; }
+}
+function renderAiResult() {
+    const box = document.getElementById('custom-recipe-result'), s = aiState;
+    box.classList.remove('hidden');
+    box.innerHTML = `<p class="text-[11px] font-semibold text-slate-500"><i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Ideas de la IA para ${MEAL_NAME[s.goal]}${typeof s.remaining === 'number' ? ' · te quedan ' + s.remaining + ' hoy' : ''}</p>` +
+        s.items.map((r, i) => `<div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
+            <h4 class="font-bold text-sm text-slate-900">${escapeHtml(r.title)}</h4>
+            <div class="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                ${r.time_min ? `<span class="text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">⏱ ${r.time_min} min</span>` : ''}
+                ${r.calories ? `<span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">≈ ${r.calories} kcal</span>` : ''}
+                ${r.protein_g ? `<span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">≈ ${r.protein_g} g proteína</span>` : ''}
+            </div>
+            <p class="text-[11px] text-emerald-700">Ingredientes: ${r.ingredients.map(x => escapeHtml(x.name + (x.amount ? ' (' + x.amount + ')' : ''))).join(', ')}</p>
+            <ol class="list-decimal pl-4 text-xs text-slate-600 space-y-1">${r.steps.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ol>
+            ${r.tip ? `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${escapeHtml(r.tip)}</p>` : ''}
+            <div class="flex gap-2"><button onclick="saveAiRecipe(${i})" class="flex-1 text-xs bg-slate-100 text-slate-700 font-semibold py-2 rounded-lg cursor-pointer">Guardar</button>
+            <button onclick="useAiRecipe(${i})" class="flex-1 text-xs bg-emerald-600 text-white font-semibold py-2 rounded-lg cursor-pointer">Usar en diario</button></div>
+        </div>`).join('') +
+        `<button onclick="generateAiRecipe(true)" class="w-full text-xs text-emerald-700 font-bold py-2 bg-emerald-50 rounded-xl cursor-pointer">Otras ideas con IA</button>
+        <p class="text-[10px] text-slate-400">Generado por IA: las calorías son aproximadas y puede haber errores. Revisa siempre alergias e intolerancias. No sustituye el consejo de un profesional.</p>`;
+}
+function useAiRecipe(i) { const r = aiState.items[i]; if (r) sendToMeal(aiState.goal, r.title); }
+function saveAiRecipe(i) {
+    const r = aiState.items[i];
+    if (!r) return;
+    const ing = r.ingredients.map(x => x.name + (x.amount ? ' (' + x.amount + ')' : '')).join(', ');
+    const meta = [r.time_min && r.time_min + ' min', r.calories && '≈' + r.calories + ' kcal', r.protein_g && '≈' + r.protein_g + ' g proteína'].filter(Boolean).join(' · ');
+    addRecipeToCatalog({ id: Date.now() + i, title: r.title, desc: `Ingredientes: ${ing}. ${r.steps.map((t, n) => (n + 1) + '. ' + t).join(' ')}${meta ? ' (' + meta + ')' : ''}`, target: aiState.goal, tag: 'IA' });
+    showToast('¡Receta guardada!');
+}
+
 function getSavedRecipes() {
     const saved = DB.getItem('dreamfit_custom_recipes');
     return saved ? JSON.parse(saved) : structuredClone(initialRecipes);
 }
 
 function renderRecipesCatalog() {
+    updateAiUI();
     const list = getSavedRecipes();
     const container = document.getElementById('recipes-catalog-list');
     document.getElementById('recipe-count-badge').innerText = list.length + ' recetas';

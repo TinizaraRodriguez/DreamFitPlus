@@ -5,5 +5,6 @@
 window.DREAMFIT_CONFIG = {
     SUPABASE_URL: 'https://qyiyrnjvcusshxtvrkns.supabase.co',
     SUPABASE_ANON_KEY: 'sb_publishable_saSXEYwEi5YrlHglezbZwQ_cXcQ2Z2u',
-    GOOGLE_LOGIN: true
+    GOOGLE_LOGIN: true,
+    AI_RECIPES: true
 };
