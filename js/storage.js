@@ -3,6 +3,7 @@ const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Juli
 
 const initialWorkoutCategories = [
     'Sala Pesas (Máquinas guiadas)',
+    'Fuerza en casa (mancuernas)',
     'Running (Método CACOS)',
     'Clase: Body Pump',
     'Clase: Spinning',

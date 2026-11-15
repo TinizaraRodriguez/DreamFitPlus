@@ -5,6 +5,7 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 ## Funciones
 
 - **Hoy**: resumen del día (agua, comidas, entreno), lista compacta de comidas con hoja para añadir/editar, gráfica de la semana y botón **SOS** para antojos (pasos guiados con temporizador).
+- **Objetivo y plan**: al crear la cuenta se pregunta objetivo (ganar músculo, perder grasa, tonificar, salud), nivel, días de fuerza y dónde entrenas (gimnasio o casa con mancuernas). Con eso se monta la semana, las rutinas y las series/repeticiones/descanso (plantillas, sin IA). Se cambia desde Perfil → Mi objetivo.
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
 - **Calendario**: plan semanal editable con botón de guardar, vista compacta y usable en móvil, y cambios puntuales por día.
 - **Recetas**: generador básico (local, sin IA) por ingredientes, objetivo, momento y sabor; **generador con IA** opcional (Gemini, a través de una función segura de Supabase con límite diario); recetas propias y colección guardada.
@@ -33,6 +34,8 @@ js/
   recipe-engine.js    Motor del generador de recetas
   recipes.js          Pestaña Recetas
   calendar.js         Pestaña Calendario
+  plan.js             Plantillas de plan: objetivo + nivel + días + lugar -> semana, rutinas y series
+  onboarding.js       Hoja de bienvenida / cambio de objetivo y tarjeta «Mi objetivo» del Perfil
   workout.js          Pestaña Entreno
   progress.js         Pestaña Progreso
   today.js            Pestaña Hoy

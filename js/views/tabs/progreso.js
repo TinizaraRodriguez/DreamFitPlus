@@ -45,12 +45,7 @@ Views.addTab({
             <input type="date" id="run-add-date" oninput="previewRun()" class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"></div>
     </div>
     <button onclick="saveRunKm()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700 transition">Añadir carrera</button>
-</div>
-
-<div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-    <h3 class="font-bold text-sm text-slate-900">Historial</h3>
-    <div id="history-box" class="text-xs text-slate-600 space-y-2"></div>
-    <button id="history-more" onclick="toggleHistory()" class="hidden w-full text-xs text-emerald-700 font-bold py-2 bg-emerald-50 rounded-xl cursor-pointer"></button>
+    <div id="run-list" class="text-xs space-y-1.5 pt-1"></div>
 </div>
 `
 });

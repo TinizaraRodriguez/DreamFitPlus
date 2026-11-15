@@ -1,4 +1,3 @@
-let historyExpanded = false;
 const trim1 = v => +Number(v).toFixed(1);
 const chartDate = ms => { const d = new Date(ms); return `${d.getDate()}/${d.getMonth() + 1}`; };
 const emptyMsg = t => `<p class="text-xs text-slate-500 italic">${t}</p>`;
@@ -192,21 +191,62 @@ function renderRunProgress(preview = null) {
     if (guided.length) { const { lvl } = runPlan(); lines.push(`Nivel actual: ${lvl + 1} de ${RUN_LEVELS.length} · ${runDesc(RUN_LEVELS[lvl])}`); }
     document.getElementById('run-info').innerText = lines.join('\n');
     document.getElementById('run-chart').innerHTML = barChart(items, !preview);
+    renderRunList();
+}
+// Lista de carreras recientes con editar / eliminar (índice = posición en dreamfit_sessions)
+function renderRunList() {
+    const el = document.getElementById('run-list');
+    const rows = getSessions().map((s, i) => ({ s, i })).filter(r => r.s.kind === 'run')
+        .sort((a, b) => b.s.date.localeCompare(a.s.date) || a.i - b.i).slice(0, 6);
+    if (!rows.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<p class="font-semibold text-slate-500">Carreras recientes</p>' + rows.map(({ s, i }) => `
+        <div class="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
+            <div class="flex-1 min-w-0"><span class="text-slate-500">${s.date}</span> <span class="font-bold text-slate-800">${s.km ? trim1(s.km) + ' km' : 'sin km'}</span>${s.manual ? '' : ' <span class="text-slate-400">· guiada</span>'}</div>
+            <button onclick="editRun(${i})" aria-label="Editar carrera del ${s.date}" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-emerald-100 hover:text-emerald-700 cursor-pointer"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+            <button onclick="deleteRun(${i})" aria-label="Eliminar carrera del ${s.date}" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-red-100 hover:text-red-600 cursor-pointer"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+        </div>`).join('');
+}
+// Mantiene sincronizado el texto del historial (lo usa el calendario) con la carrera editada/borrada
+function runHistoryText(s) { return s.manual ? `🏃 [Entreno] Carrera libre: ${trim1(s.km)} km` : null; }
+function afterRunChange() { renderProgress(); renderMonthlyCalendar(); renderAgenda(); updateTodayBadge(); }
+async function editRun(i) {
+    const all = getSessions(), s = all[i];
+    if (!s || s.kind !== 'run') return;
+    const v = await UI.prompt({ title: 'Corregir kilómetros', message: `Carrera del ${s.date}`, value: s.km ? String(s.km) : '', inputType: 'number', inputMode: 'decimal', step: '0.1', placeholder: 'Ej: 5.2', confirmText: 'Guardar' });
+    if (v === null) return;
+    const km = parseFloat(String(v).replace(',', '.'));
+    if (!(km > 0) || km > 500) { showToast('Indica unos km válidos.'); return; }
+    const old = runHistoryText(s);
+    s.km = km;
+    DB.setItem('dreamfit_sessions', JSON.stringify(all));
+    if (old) { // actualiza la entrada del historial equivalente
+        const h = getHistory(), k = h.findIndex(e => e.date === s.date && e.text === old);
+        if (k >= 0) { h[k].text = runHistoryText(s); DB.setItem('dreamfit_history', JSON.stringify(h)); }
+    }
+    showToast(`Carrera actualizada: ${trim1(km)} km`);
+    afterRunChange();
+}
+async function deleteRun(i) {
+    const all = getSessions(), s = all[i];
+    if (!s || s.kind !== 'run') return;
+    if (!await UI.confirm({ title: '¿Eliminar esta carrera?', message: `${s.date}${s.km ? ' · ' + trim1(s.km) + ' km' : ''}. Se quitará de la gráfica y de los totales.`, confirmText: 'Eliminar', tone: 'danger' })) return;
+    all.splice(i, 1);
+    DB.setItem('dreamfit_sessions', JSON.stringify(all));
+    const old = runHistoryText(s);
+    if (old) {
+        const h = getHistory(), k = h.findIndex(e => e.date === s.date && e.text === old);
+        if (k >= 0) { h.splice(k, 1); DB.setItem('dreamfit_history', JSON.stringify(h)); }
+    }
+    // si ese día ya no queda ningún entreno, deja de contar como día completado
+    if (!hasWorkoutOn(s.date) && !all.some(x => x.date === s.date)) setDayCompleted(s.date, false);
+    showToast('Carrera eliminada.');
+    afterRunChange();
 }
 
-// ---------- Resumen e historial ----------
-function renderHistory() {
-    const h = getHistory(), box = document.getElementById('history-box'), btn = document.getElementById('history-more');
-    if (!h.length) { box.innerHTML = emptyMsg('Aquí aparecerán tus entrenamientos guardados.'); btn.classList.add('hidden'); return; }
-    box.innerHTML = (historyExpanded ? h : h.slice(0, 8)).map(e => `<div class="p-2 bg-slate-50 rounded-lg border border-slate-100">${e.date ? `<span class="text-slate-500">${e.date}</span> ` : ''}${escapeHtml(e.text)}</div>`).join('');
-    btn.classList.toggle('hidden', h.length <= 8);
-    btn.innerText = historyExpanded ? 'Ver menos' : `Ver todo (${h.length})`;
-}
-function toggleHistory() { historyExpanded = !historyExpanded; renderHistory(); }
-
+// ---------- Resumen ----------
 function renderProgress() {
     const km = getSessions().filter(s => s.kind === 'run').reduce((t, s) => t + (s.km || 0), 0);
     document.getElementById('progress-summary').innerHTML = `<div class="grid grid-cols-3 gap-2">${statTile(Object.keys(getLog()).length, 'sesiones totales')}${statTile(trim1(km), 'km corridos')}${statTile('🔥 ' + calcStreak(), 'días de racha')}</div>`;
-    renderMeasures(); renderStrengthProgress(); renderRunProgress(); renderHistory();
+    renderMeasures(); renderStrengthProgress(); renderRunProgress();
 }
 function loadHistory() { renderProgress(); } // los demás módulos llaman a esto tras guardar

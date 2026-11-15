@@ -1,31 +1,13 @@
-const machinesDatabase = {
-    'Lunes': [
-        { name: 'Jalón al pecho', tech: 'Espalda recta, pechos arriba. Lleva la barra al esternón tirando con los codos sin balancear la espalda.', videoUrl: 'https://www.youtube.com/results?search_query=jalon+al+pecho+tecnica+maquina', defaultWeight: 15 },
-        { name: 'Remo sentado en polea/máquina', tech: 'Mantén los hombros lejos de las orejas y junta los escápulas atrás al tirar del agarre hacia el abdomen.', videoUrl: 'https://www.youtube.com/results?search_query=remo+sentado+maquina+tecnica', defaultWeight: 15 },
-        { name: 'Curl de bíceps guiado', tech: 'Apoya los brazos firmes sobre el cojín y sube el peso doblando los codos sin mover los hombros.', videoUrl: 'https://www.youtube.com/results?search_query=curl+biceps+maquina+tecnica', defaultWeight: 10 }
-    ],
-    'Miércoles': [
-        { name: 'Press de pecho en máquina', tech: 'Ajusta la altura del asiento para que las empuñaduras queden al nivel de la parte media del pecho. Empuja sin bloquear codos.', videoUrl: 'https://www.youtube.com/results?search_query=press+de+pecho+en+maquina+tecnica', defaultWeight: 15 },
-        { name: 'Press militar de hombro', tech: 'Espalda bien pegada al respaldo. Empuja los agarres hacia arriba sobre la cabeza con control al bajar.', videoUrl: 'https://www.youtube.com/results?search_query=press+militar+maquina+tecnica', defaultWeight: 10 },
-        { name: 'Extensiones de tríceps en polea', tech: 'Codos pegados a los costados y fijos. Estira los brazos hacia abajo apretando la parte posterior de los brazos.', videoUrl: 'https://www.youtube.com/results?search_query=extension+triceps+polea+tecnica', defaultWeight: 10 }
-    ],
-    'Viernes': [
-        { name: 'Prensa de piernas guiada', tech: 'Coloca los pies al ancho de las caderas. Baja despacio flexionando rodillas a 90º sin descolgar la pelvis del asiento.', videoUrl: 'https://www.youtube.com/results?search_query=prensa+de+piernas+tecnica', defaultWeight: 25 },
-        { name: 'Leg Extension (Cuádriceps)', tech: 'Ajusta el cojín sobre la parte baja de las espinillas. Extiende las piernas hasta estirarlas casi por completo.', videoUrl: 'https://www.youtube.com/results?search_query=leg+extension+maquina+tecnica', defaultWeight: 15 },
-        { name: 'Máquina de Abductores', tech: 'Abre las piernas manteniendo la espalda erguida contra el respaldo para trabajar los glúteos estabilizadores.', videoUrl: 'https://www.youtube.com/results?search_query=abductores+maquina+tecnica', defaultWeight: 20 }
-    ]
-};
-
+// Rutinas de fuerza: las genera js/plan.js según el perfil (objetivo, nivel, días y lugar).
 function getDayMachines(dayName) {
-    if (machinesDatabase[dayName]) return machinesDatabase[dayName];
-    // Otro día con pesas: rota entre las rutinas según cuántos días de fuerza lleva la semana
-    const keys = Object.keys(machinesDatabase), agenda = getAgenda();
+    // la rutina depende de cuántos días de fuerza lleva la semana hasta ese día
+    const agenda = getAgenda(), routines = planRoutines();
     let n = 0;
     for (const d of daysOfWeek) {
         if (/Pesas|Fuerza/.test(agenda[d].activity)) n++;
         if (d === dayName) break;
     }
-    return machinesDatabase[keys[Math.max(n - 1, 0) % keys.length]];
+    return routines[Math.max(n - 1, 0) % routines.length];
 }
 
 function addCustomCategory() {
@@ -59,7 +41,7 @@ function renderAllSelects() {
 // ===== ENTRENO DINÁMICO =====
 const FEEL = [['easy', '😄 Fácil'], ['ok', '🙂 Bien'], ['hard', '🥵 Duro']];
 const FEEL_TXT = { easy: 'fácil', ok: 'bien', hard: 'dura' };
-const RESULT_TXT = { yes: 'completó 3x12', mid: 'casi', no: 'no pudo' };
+const resultTxt = r => ({ yes: 'completó ' + getScheme().label.replace('×', 'x'), mid: 'casi', no: 'no pudo' })[r];
 const RUN_LEVELS = [
     { run: 2, walk: 1, reps: 8 }, { run: 3, walk: 1, reps: 8 }, { run: 4, walk: 1, reps: 6 },
     { run: 5, walk: 1, reps: 5 }, { run: 8, walk: 1, reps: 4 }, { run: 10, walk: 1, reps: 3 },
@@ -127,7 +109,7 @@ function renderEntrenoPanel() {
 // ---- PESAS ----
 function suggestWeight(m) {
     const last = (getStrength()[m.name] || [])[0];
-    const step = 2.5;
+    const step = eff().place === 'home' ? 2 : 2.5;
     if (!last) return { w: getLearnedWeights()[m.name] || m.defaultWeight, why: 'Peso inicial recomendado.' };
     if (last.result === 'yes') return { w: last.weight + step, why: `Completaste todo con ${last.weight} kg: sube ${step} kg.` };
     if (last.result === 'no') return { w: Math.max(step, last.weight - step), why: `Costó con ${last.weight} kg: baja ${step} kg.` };
@@ -137,7 +119,7 @@ function strengthPanel() {
     const machines = getDayMachines(getTodayName());
     const hist = getStrength(), today = getTodayKey();
     const isDone = m => (hist[m.name] || [])[0]?.date === today;
-    const header = card(`<div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">${machines.filter(isDone).length}/${machines.length} máquinas</span></div><p class="text-xs text-slate-500">Anota cómo te fue en cada máquina: la app ajusta el peso de la próxima vez.</p>`);
+    const header = card(`<div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">${machines.filter(isDone).length}/${machines.length} ejercicios</span></div><p class="text-xs text-slate-700 font-semibold">${getScheme().label} · descanso ${getScheme().restLabel} entre series${getProfile() ? ' · ' + GOALS[eff().goal].label : ''}</p><p class="text-xs text-slate-500">Anota cómo te fue en cada ejercicio: la app ajusta el peso de la próxima vez.</p>`);
     return header + machines.map((m, i) => {
         const sug = suggestWeight(m);
         const top = `<div class="flex justify-between items-start"><h4 class="font-bold text-sm text-slate-900">${m.name}</h4><a href="${m.videoUrl}" target="_blank" rel="noopener" class="text-[11px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md">▶ Vídeo</a></div><p class="text-[11px] text-slate-600"><b>Técnica:</b> ${m.tech}</p>`;
@@ -145,8 +127,8 @@ function strengthPanel() {
         return card(top + `
             <p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>
             <label for="sw-${i}" class="text-xs font-semibold text-slate-500">Peso usado hoy (kg)</label>
-            <input type="number" inputmode="decimal" step="2.5" id="sw-${i}" value="${sug.w}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-            ${choices('sr-' + i, [['yes', '✅ Completé 3x12'], ['mid', '😅 Casi'], ['no', '❌ No pude']])}
+            <input type="number" inputmode="decimal" step="0.5" id="sw-${i}" value="${sug.w}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+            ${choices('sr-' + i, [['yes', `✅ Completé ${getScheme().label}`], ['mid', '😅 Casi'], ['no', '❌ No pude']])}
             <button onclick="saveMachine(${i})" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700">Guardar máquina</button>`);
     }).join('');
 }
@@ -158,7 +140,7 @@ function saveMachine(i) {
     const s = getStrength();
     (s[m.name] = s[m.name] || []).unshift({ date: getTodayKey(), weight: w, result: r });
     DB.setItem('dreamfit_strength', JSON.stringify(s));
-    addHistory(`💪 [Fuerza] ${m.name}: ${w} kg | ${RESULT_TXT[r]}`);
+    addHistory(`💪 [Fuerza] ${m.name}: ${w} kg | ${resultTxt(r)}`);
     if (machines.every(x => s[x.name]?.[0]?.date === getTodayKey())) completeToday('¡Rutina completa! 🏆');
     else showToast(`Guardado: ${m.name} ${w} kg`);
     refreshAfterLog();

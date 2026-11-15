@@ -18,7 +18,7 @@ function switchTab(tabName) {
     if (tabName === 'hoy') renderToday();
     if (tabName === 'entreno') renderEntrenoTab();
     if (tabName === 'progreso') renderProgress();
-    if (tabName === 'perfil') renderAccount();
+    if (tabName === 'perfil') { renderAccount(); renderGoalCard(); }
     const hp = document.getElementById('hdr-perfil');
     if (hp) { if (tabName === 'perfil') hp.setAttribute('aria-current', 'page'); else hp.removeAttribute('aria-current'); }
     window.scrollTo(0, 0);
@@ -96,6 +96,7 @@ function startApp() {
     renderMealsCard();
     loadState();
     renderAccount();
+    if (!profileDone()) openOnboarding(true); // primera vez: pregunta el objetivo
     if (Sync.enabled) { // volver a la app / recuperar conexión: enviar lo pendiente y traer lo nuevo de otros dispositivos
         const pull = () => Sync.pull().then(r => { if (r.changed) refreshFromRemote(); });
         document.addEventListener('visibilitychange', () => {
@@ -108,7 +109,10 @@ function startApp() {
     window.addEventListener('storage', e => { if (!e.key || e.key.startsWith('dreamfit_')) loadState(); });
 }
 
-function refreshFromRemote() { loadState(); } // llegaron datos nuevos de otro dispositivo
+function refreshFromRemote() { // llegaron datos nuevos de otro dispositivo
+    if (ob && ob.first && profileDone()) closeOnboarding(); // en la nube ya había un perfil: no hace falta preguntar
+    loadState(); renderGoalCard();
+} // llegaron datos nuevos de otro dispositivo
 
 async function afterLogin() { // ya hay sesión: elegir su espacio de datos, traer lo de la nube y arrancar
     DB.setScope(Auth.user.id);
@@ -125,7 +129,7 @@ async function afterLogin() { // ya hay sesión: elegir su espacio de datos, tra
 
 async function boot() {
     Views.mount(); // pinta pestañas, cabecera, barra y hojas antes de cualquier otra cosa
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSosModal(); closeMealModal(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('ui-dialog')) { closeSosModal(); closeMealModal(); if (ob) skipOnboarding(); } });
     try { await Auth.init(); }
     catch (e) { AuthUI.show('error', { msg: 'No se pudo conectar con el servicio de cuentas. ' + authMsg(e) }); return; }
     Auth.booted = true;

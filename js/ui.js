@@ -1,6 +1,6 @@
 // ===== AVISOS Y DIÁLOGOS PROPIOS (sustituyen a alert/confirm/prompt del navegador) =====
 // UI.confirm({ title, message, confirmText, cancelText, tone })  -> Promise<boolean>
-// UI.prompt({ title, message, expected, placeholder, confirmText, tone }) -> Promise<string|null>
+// UI.prompt({ title, message, expected, placeholder, value, inputType, inputMode, step, confirmText, tone }) -> Promise<string|null>
 //     con `expected`, el botón de confirmar no se activa hasta escribirlo exactamente (p. ej. ELIMINAR)
 // showToast(mensaje, tipo?) -> aviso breve; tipo: 'ok' | 'warn' | 'error' (si se omite, se deduce del texto)
 const UI = (() => {
@@ -31,7 +31,7 @@ const UI = (() => {
                     ${o.message ? `<p id="${id}-m" class="text-xs text-slate-600 whitespace-pre-line">${esc(o.message)}</p>` : ''}
                 </div>
             </div>
-            ${job.withInput ? `<input id="${id}-i" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(o.placeholder || '')}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">` : ''}
+            ${job.withInput ? `<input id="${id}-i" type="${o.inputType || 'text'}" ${o.inputMode ? `inputmode="${esc(o.inputMode)}"` : ''} ${o.step ? `step="${esc(o.step)}"` : ''} value="${esc(o.value || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(o.placeholder || '')}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">` : ''}
             <div class="flex gap-2">
                 <button type="button" data-ui="cancel" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-slate-200">${esc(o.cancelText || 'Cancelar')}</button>
                 <button type="button" data-ui="ok" class="flex-1 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${t.btn}">${esc(o.confirmText || 'Aceptar')}</button>
