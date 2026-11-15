@@ -46,24 +46,56 @@ function renderCalendarStats(year, month, log) {
         <div class="h-2 bg-slate-100 rounded-full"><div class="h-2 bg-emerald-500 rounded-full" style="width:${planned ? Math.min(100, done / planned * 100) : 0}%"></div></div></div>`;
 }
 
+// Colores por tipo de entreno (el color nunca va solo: la leyenda, el detalle y el aria-label dicen el nombre)
+const KIND_INFO = {
+    strength: { name: 'Fuerza', dot: 'bg-violet-500', ring: 'border-violet-500', chip: 'bg-violet-100 text-violet-800' },
+    run:      { name: 'Running', dot: 'bg-sky-500', ring: 'border-sky-500', chip: 'bg-sky-100 text-sky-800' },
+    class:    { name: 'Clase / otros', dot: 'bg-orange-500', ring: 'border-orange-500', chip: 'bg-orange-100 text-orange-800' },
+    stretch:  { name: 'Movilidad', dot: 'bg-pink-500', ring: 'border-pink-500', chip: 'bg-pink-100 text-pink-800' }
+};
+const KIND_ORDER = ['strength', 'run', 'class', 'stretch'];
+// Qué hizo cada día: se deduce de lo guardado (historial y carreras). Devuelve { 'YYYY-MM-DD': Set(tipos) }
+function doneKindsByDate() {
+    const map = {}, add = (d, k) => { if (d && k && KIND_INFO[k]) (map[d] = map[d] || new Set()).add(k); };
+    getHistory().forEach(h => {
+        if (!h.date) return;
+        if (/\[Fuerza\]/.test(h.text)) add(h.date, 'strength');
+        else if (/\[Entreno\]/.test(h.text)) {
+            if (/Running|Carrera libre/.test(h.text)) add(h.date, 'run');
+            else if (/Descanso activo|Estiramientos/i.test(h.text)) add(h.date, 'stretch');
+            else { const m = /\[Entreno\]\s*(.*?)\s*\(\d+ min\)/.exec(h.text); add(h.date, m ? kindOf(m[1]) === 'rest' ? 'class' : kindOf(m[1]) : 'class'); }
+        }
+    });
+    getSessions().forEach(x => { if (x.kind === 'run') add(x.date, 'run'); });
+    return map;
+}
+const sortKinds = set => KIND_ORDER.filter(k => set.has(k));
+
 function renderMonthlyCalendar() {
     const year = currentViewDate.getFullYear(), month = currentViewDate.getMonth();
     document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
     const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const todayStr = getTodayKey(), log = getLog(), agenda = getAgenda(), ov = getOverrides();
-    const workoutDates = new Set(getHistory().filter(h => h.date && WORKOUT_RE.test(h.text)).map(h => h.date));
+    const kinds = doneKindsByDate();
 
     let html = '<div class="h-10"></div>'.repeat(firstDay);
     for (let day = 1; day <= daysInMonth; day++) {
         const key = formatDateKey(new Date(year, month, day));
         const isToday = key === todayStr, isSelected = key === selectedDateKey;
-        const done = log[key] || workoutDates.has(key);
-        const pending = !done && key >= todayStr && !isRest(getPlanFor(key, agenda, ov));
-        const mark = done ? `<span class="w-1.5 h-1.5 rounded-full ${isToday ? 'bg-amber-300' : 'bg-emerald-500'} absolute bottom-1"></span>`
-            : pending ? `<span class="w-1.5 h-1.5 rounded-full border ${isToday ? 'border-white' : 'border-slate-400'} absolute bottom-1"></span>` : '';
+        const doneKinds = kinds[key] ? sortKinds(kinds[key]) : [];
+        const done = log[key] || doneKinds.length > 0;
+        const plan = getPlanFor(key, agenda, ov), plannedKind = isRest(plan) ? null : kindOf(plan);
+        const pending = !done && key >= todayStr && plannedKind;
+        // hecho: un punto de color por cada tipo (si se marcó a mano sin registro, el del plan); pendiente: aro del color planificado
+        const dotKinds = doneKinds.length ? doneKinds.slice(0, 3) : done && KIND_INFO[plannedKind] ? [plannedKind] : [];
+        const dots = dotKinds.map(k => `<span class="w-1.5 h-1.5 rounded-full ${KIND_INFO[k].dot} ${isToday ? 'ring-1 ring-white' : ''}"></span>`).join('')
+            || (done ? `<span class="w-1.5 h-1.5 rounded-full ${isToday ? 'bg-amber-300' : 'bg-emerald-500'}"></span>` : '');
+        const ring = pending ? `<span class="w-1.5 h-1.5 rounded-full border-2 ${KIND_INFO[plannedKind] ? KIND_INFO[plannedKind].ring : 'border-slate-400'} ${isToday ? 'bg-white' : ''}"></span>` : '';
+        const mark = (dots || ring) ? `<span class="flex gap-0.5 absolute bottom-1">${dots || ring}</span>` : '';
+        const label = `${day} de ${monthNames[month]}${doneKinds.length ? ': ' + doneKinds.map(k => KIND_INFO[k].name).join(', ') : done ? ': hecho' : pending ? ': planificado, ' + plan : ''}`;
         html += `
-            <button aria-label="${day} de ${monthNames[month]}" onclick="selectCalendarDay('${key}')" class="h-10 flex flex-col items-center justify-center rounded-xl text-xs relative cursor-pointer transition ${isToday ? 'bg-emerald-600 text-white font-bold' : 'hover:bg-slate-100 text-slate-700'} ${isSelected ? 'ring-2 ring-emerald-400 font-bold' : ''}">
+            <button aria-label="${escapeHtml(label)}" onclick="selectCalendarDay('${key}')" class="h-10 flex flex-col items-center justify-center rounded-xl text-xs relative cursor-pointer transition ${isToday ? 'bg-emerald-600 text-white font-bold' : 'hover:bg-slate-100 text-slate-700'} ${isSelected ? 'ring-2 ring-emerald-400 font-bold' : ''}">
                 <span>${day}</span>${mark}
             </button>`;
     }
@@ -88,6 +120,7 @@ function renderDayDetail() {
     const done = isDayCompleted(key), rest = isRest(plan);
     // Las medidas corporales solo se ven en Progreso, no en el detalle del día
     const entries = getHistory().filter(h => h.date === key && !/\[Medidas\]/.test(h.text));
+    const dk = doneKindsByDate()[key], chips = dk ? sortKinds(dk).map(k => `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full ${KIND_INFO[k].chip}"><span class="w-1.5 h-1.5 rounded-full ${KIND_INFO[k].dot}"></span>${KIND_INFO[k].name}</span>`).join('') : '';
 
     document.getElementById('selected-day-title').innerText = `${dayNameOf(date)} ${date.getDate()} de ${monthNames[date.getMonth()]}`;
     const statusEl = document.getElementById('selected-day-status');
@@ -106,6 +139,7 @@ function renderDayDetail() {
             </select>
             <p class="text-[11px] text-slate-500">Este cambio solo afecta a este día; la rutina semanal no se toca.</p>
         </div>
+        ${chips ? `<div class="flex flex-wrap gap-1.5" aria-label="Lo que hiciste este día">${chips}</div>` : ''}
         ${actions.length ? `<div class="flex gap-2">${actions.join('')}</div>` : ''}
         ${entries.map(e => `<div class="p-2 bg-slate-50 rounded-lg border border-slate-100">${escapeHtml(e.text)}</div>`).join('')}`;
 }

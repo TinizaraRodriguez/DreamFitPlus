@@ -25,10 +25,18 @@ Views.addTab({
 
     <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
 
-    <div class="flex flex-wrap gap-x-4 gap-y-1 justify-center text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Realizado</span>
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border border-slate-400 inline-block"></span> Planificado</span>
-        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-600 inline-block"></span> Hoy</span>
+    <div class="space-y-1.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+        <div class="flex flex-wrap gap-x-3 gap-y-1 justify-center">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-violet-500 inline-block"></span> Fuerza</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block"></span> Running</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span> Clase / otros</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block"></span> Movilidad</span>
+        </div>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 justify-center">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500 inline-block"></span> Punto lleno: hecho</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border-2 border-slate-500 inline-block"></span> Aro: planificado</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-600 inline-block"></span> Hoy</span>
+        </div>
     </div>
 </div>
 
