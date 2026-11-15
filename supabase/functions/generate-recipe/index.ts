@@ -2,7 +2,7 @@
 //
 // Secretos (Supabase → Edge Functions → Secrets):
 //   GEMINI_API_KEY   (obligatorio)  clave de Google AI Studio
-//   GEMINI_MODEL     (opcional)     por defecto «gemini-2.5-flash»; cámbialo si Google lo retira
+//   GEMINI_MODEL     (opcional)     por defecto «gemini-3.8-flash»; cámbialo si Google lo retira
 //   AI_DAILY_LIMIT   (opcional)     recetas por usuario y día, por defecto 10
 //   ALLOWED_ORIGIN   (opcional)     dirección de tu web (varias separadas por comas); por defecto cualquiera
 // SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los inyecta Supabase solos.
@@ -120,14 +120,14 @@ export async function handle(req: Request): Promise<Response> {
   const refund = () => rpc('ai_refund_quota', { p_user: uid }).catch(() => {});
 
   // 4) Gemini
-  const model = (env('GEMINI_MODEL') || 'gemini-2.5-flash').replace(/[^a-zA-Z0-9._-]/g, '');
+  const model = (env('GEMINI_MODEL') || 'gemini-3.8-flash').replace(/[^a-zA-Z0-9._-]/g, '');
   const prompt = `Ingredientes disponibles: ${inp.ingredients.join(', ')}.
 Momento: ${MEALS[inp.goal]}. Sabor: ${FLAVORS[inp.flavor]}.
 Alergias o restricciones: ${inp.restrictions || 'ninguna indicada'}.
 ${inp.avoid.length ? 'Ya te propuse estas (no las repitas): ' + inp.avoid.join('; ') + '.' : ''}
 Dame 2 recetas distintas.`;
-  const gen: any = { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.9, maxOutputTokens: 2048 };
-  if (/2\.5-flash/.test(model)) gen.thinkingConfig = { thinkingBudget: 0 };
+  const gen: any = { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.9, maxOutputTokens: 4096 }; // margen: los modelos con «razonamiento» gastan parte de este límite
+  if (/2\.5-flash/.test(model)) gen.thinkingConfig = { thinkingBudget: 0 }; // solo los 2.5 aceptan este ajuste
   let out: any;
   try {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 25000);
