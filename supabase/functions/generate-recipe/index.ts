@@ -2,7 +2,7 @@
 //
 // Secretos (Supabase → Edge Functions → Secrets):
 //   GEMINI_API_KEY   (obligatorio)  clave de Google AI Studio
-//   GEMINI_MODEL     (opcional)     modelo(s) separados por comas; por defecto «gemini-3.8-flash,gemini-flash-latest»
+//   GEMINI_MODEL     (opcional)     modelo(s) separados por comas; por defecto «gemini-3.8-flash,gemini-flash-latest,gemini-flash-lite-latest»
 //   AI_DAILY_LIMIT   (opcional)     recetas por usuario y día, por defecto 10
 //   ALLOWED_ORIGIN   (opcional)     dirección de tu web (varias separadas por comas); por defecto cualquiera
 // SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los inyecta Supabase solos.
@@ -121,7 +121,7 @@ export async function handle(req: Request): Promise<Response> {
 
   // 4) Gemini
   // GEMINI_MODEL admite varios modelos separados por comas (se prueban por orden).
-  const models = (env('GEMINI_MODEL') || 'gemini-3.8-flash,gemini-flash-latest').split(',').map((x: string) => x.replace(/[^a-zA-Z0-9._-]/g, '')).filter(Boolean).slice(0, 3);
+  const models = (env('GEMINI_MODEL') || 'gemini-3.8-flash,gemini-flash-latest,gemini-flash-lite-latest').split(',').map((x: string) => x.replace(/[^a-zA-Z0-9._-]/g, '')).filter(Boolean).slice(0, 3);
   const prompt = `Ingredientes disponibles: ${inp.ingredients.join(', ')}.
 Momento: ${MEALS[inp.goal]}. Sabor: ${FLAVORS[inp.flavor]}.
 Alergias o restricciones: ${inp.restrictions || 'ninguna indicada'}.
@@ -147,13 +147,14 @@ Dame 2 recetas distintas.`;
   const parseJson = (t: string) => { // tolera ```json … ``` si el modelo los añade
     const m = t.match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : t);
   };
-  // Intentos por orden: 1) primer modelo con esquema, 2) el mismo sin esquema (por si el esquema es lo que se cuelga),
-  // 3) el siguiente modelo de la lista sin esquema. Cada intento tiene su tiempo límite. Total máximo ≈ 60 s.
-  const plan: { m: string; schema: boolean }[] = [{ m: models[0], schema: true }, { m: models[0], schema: false }];
-  if (models[1]) plan.push({ m: models[1], schema: false });
-  const perTry = 20000;
+  // Orden: cada modelo de la lista con esquema. Solo para el PRIMER modelo, si el intento falla por otra causa distinta de
+  // «saturado/retirado» (p. ej. se cuelga), se repite sin esquema pidiendo el JSON en el texto.
+  // 503 = Gemini saturado: no se repite el mismo modelo, se pasa al siguiente tras una pausa breve.
+  const perTry = 18000;
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
   let out: any = null, lastCode = 'upstream', lastStatus = 502, lastMsg = 'La IA no ha podido responder.';
-  for (const { m, schema } of plan) {
+  const busyMsg = 'La IA de Google está saturada ahora mismo. Inténtalo de nuevo en un minuto.';
+  const attempt = async (m: string, schema: boolean): Promise<'ok' | 'next' | 'retry-text' | 'stop'> => {
     const t0 = Date.now(), tag = `${m}/${schema ? 'esquema' : 'texto'}`;
     try {
       const gen = genFor(m, schema);
@@ -164,19 +165,24 @@ Dame 2 recetas distintas.`;
       }
       if (!g.ok) {
         const status = g.status; console.error('gemini', status, tag, (await g.text()).slice(0, 300));
-        if (status === 429) { lastCode = 'busy'; lastStatus = 503; lastMsg = 'La IA está saturada ahora mismo. Inténtalo en un minuto.'; break; }
-        if (status === 404) { lastCode = 'model'; lastStatus = 502; lastMsg = 'El modelo de IA configurado ya no existe. Avisa al administrador.'; }
-        else { lastCode = 'upstream'; lastStatus = 502; lastMsg = 'La IA no ha podido responder.'; }
-        continue;
+        if (status === 429) { lastCode = 'busy'; lastStatus = 503; lastMsg = busyMsg; return 'stop'; }
+        if (status === 503) { lastCode = 'busy'; lastStatus = 503; lastMsg = busyMsg; await sleep(1000); return 'next'; }
+        if (status === 404) { lastCode = 'model'; lastStatus = 502; lastMsg = 'El modelo de IA configurado ya no existe. Avisa al administrador.'; return 'next'; }
+        lastCode = 'upstream'; lastStatus = 502; lastMsg = 'La IA no ha podido responder.'; return 'retry-text';
       }
       const data = await g.json();
       const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || '').join('') || '';
       console.log('gemini ok', tag, Date.now() - t0, 'ms', data?.candidates?.[0]?.finishReason || '');
-      out = parseJson(text); break;
+      out = parseJson(text); return 'ok';
     } catch (e) {
       console.error('gemini-fail', tag, String(e).slice(0, 200), Date.now() - t0, 'ms');
-      lastCode = 'upstream'; lastStatus = 502; lastMsg = 'La IA no ha podido responder.';
+      lastCode = 'upstream'; lastStatus = 502; lastMsg = 'La IA no ha podido responder.'; return 'retry-text';
     }
+  };
+  for (let i = 0; i < models.length && out === null; i++) {
+    const r1 = await attempt(models[i], true);
+    if (r1 === 'ok' || r1 === 'stop') break;
+    if (r1 === 'retry-text' && i === 0) { const r2 = await attempt(models[i], false); if (r2 === 'ok' || r2 === 'stop') break; }
   }
   if (out === null) { await refund(); return json({ code: lastCode, error: lastMsg }, lastStatus, cors); }
   const recipes = sanitizeRecipes(out);
