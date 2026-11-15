@@ -127,16 +127,24 @@ Alergias o restricciones: ${inp.restrictions || 'ninguna indicada'}.
 ${inp.avoid.length ? 'Ya te propuse estas (no las repitas): ' + inp.avoid.join('; ') + '.' : ''}
 Dame 2 recetas distintas.`;
   const gen: any = { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.9, maxOutputTokens: 4096 }; // margen: los modelos con «razonamiento» gastan parte de este límite
-  if (/2\.5-flash/.test(model)) gen.thinkingConfig = { thinkingBudget: 0 }; // solo los 2.5 aceptan este ajuste
-  let out: any;
-  try {
-    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 25000);
-    const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+  // Menos «pensar» = respuestas mucho más rápidas. Cada familia de modelos usa un ajuste distinto.
+  if (/2\.5-flash/.test(model)) gen.thinkingConfig = { thinkingBudget: 0 };
+  else if (/^gemini-3/.test(model)) gen.thinkingConfig = { thinkingLevel: 'low' };
+  const send = (g: any, ms: number) => {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+    return fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST', signal: ctl.signal,
       headers: { 'content-type': 'application/json', 'x-goog-api-key': gkey },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: gen })
-    });
-    clearTimeout(t);
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: g })
+    }).finally(() => clearTimeout(t));
+  };
+  let out: any; const t0 = Date.now();
+  try {
+    let g = await send(gen, 45000);
+    if (g.status === 400 && gen.thinkingConfig) { // el modelo no acepta ese ajuste: reintento una vez sin él
+      console.error('gemini 400 (reintento sin thinkingConfig)', (await g.text()).slice(0, 200));
+      const { thinkingConfig, ...plain } = gen; g = await send(plain, 45000);
+    }
     if (!g.ok) {
       await refund();
       const status = g.status;
@@ -146,11 +154,12 @@ Dame 2 recetas distintas.`;
       return json({ code: 'upstream', error: 'La IA no ha podido responder.' }, 502, cors);
     }
     const data = await g.json();
+    console.log('gemini ok', model, Date.now() - t0, 'ms', data?.candidates?.[0]?.finishReason || '');
     const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || '').join('') || '';
     out = JSON.parse(text);
   } catch (e) {
     await refund();
-    console.error('gemini-fail', String(e).slice(0, 200));
+    console.error('gemini-fail', String(e).slice(0, 200), Date.now() - t0, 'ms');
     return json({ code: 'upstream', error: 'La IA no ha podido responder.' }, 502, cors);
   }
   const recipes = sanitizeRecipes(out);

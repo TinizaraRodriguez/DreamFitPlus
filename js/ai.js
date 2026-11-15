@@ -2,7 +2,7 @@
 // La web NUNCA habla con Gemini directamente: llama a la función segura «generate-recipe» de Supabase,
 // que guarda la clave, comprueba la sesión y aplica el límite diario (ver supabase/functions/generate-recipe).
 const AiRecipes = {
-    TIMEOUT_MS: 40000,
+    TIMEOUT_MS: 60000,
     enabled() {
         return typeof Auth !== 'undefined' && Auth.mode === 'supabase' && !!Auth.user && (window.DREAMFIT_CONFIG || {}).AI_RECIPES === true;
     },
@@ -33,7 +33,9 @@ const AiRecipes = {
             case 'network': return 'Sin conexión con la IA. Comprueba tu internet.';
             case 'auth': return 'Tu sesión ha caducado. Vuelve a iniciar sesión.';
             case 'input': case 'empty': return e.message || 'Con esos datos no he podido montar una receta. Prueba con otros ingredientes.';
-            case 'not_configured': case 'quota_setup': case 'model': return 'La IA aún no está lista en el servidor. Avisa a quien administra la app.';
+            case 'not_configured': return 'La IA aún no está lista en el servidor: falta la clave de Gemini (secreto GEMINI_API_KEY). Avisa a quien administra la app.';
+            case 'quota_setup': return 'La IA aún no está lista en el servidor: falta ejecutar supabase/03-ia.sql. Avisa a quien administra la app.';
+            case 'model': return 'La IA aún no está lista en el servidor: el modelo de Gemini configurado no existe. Hay que cambiar el secreto GEMINI_MODEL. Avisa a quien administra la app.';
             default: return 'La IA no ha podido responder ahora mismo.';
         }
     }
