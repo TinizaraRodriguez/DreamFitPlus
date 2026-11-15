@@ -83,8 +83,8 @@ function saveMeasures() {
     showToast('¡Medidas guardadas!');
     renderProgress();
 }
-function deleteMeasure(i) {
-    if (!confirm('¿Eliminar este registro de medidas?')) return;
+async function deleteMeasure(i) {
+    if (!await UI.confirm({ title: '¿Eliminar este registro?', message: 'Se quitará de tu historial de medidas y de las gráficas.', confirmText: 'Eliminar', tone: 'danger' })) return;
     const list = getMeasures();
     list.splice(i, 1);
     DB.setItem('dreamfit_measures', JSON.stringify(list));

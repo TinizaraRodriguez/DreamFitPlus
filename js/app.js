@@ -73,8 +73,9 @@ function loadState() {
     updateTodayBadge();
 }
 
-function resetDay() {
-    if (confirm('¿Empezar un nuevo día?')) {
+async function resetDay() {
+    const yes = await UI.confirm({ title: '¿Empezar un nuevo día?', message: 'Se vaciarán el agua, las comidas y la marca de entreno de hoy.', confirmText: 'Empezar de cero', tone: 'warn', icon: 'fa-rotate-right' });
+    if (yes) {
         DB.removeItem('dreamfit_state');
         setWaterUI(0);
         Object.values(MEAL_IDS).forEach(id => document.getElementById(id).value = '');

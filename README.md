@@ -7,20 +7,27 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 - **Hoy**: resumen del día (agua, comidas, entreno), lista compacta de comidas con hoja para añadir/editar, gráfica de la semana y botón **SOS** para antojos (pasos guiados con temporizador).
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
 - **Calendario**: plan semanal editable con botón de guardar, vista compacta y usable en móvil, y cambios puntuales por día.
-- **Recetas**: generador que varía según ingredientes disponibles, objetivo, momento de la comida y sabor; recetas propias y colección guardada.
+- **Recetas**: generador básico (local, sin IA) por ingredientes, objetivo, momento y sabor; **generador con IA** opcional (Gemini, a través de una función segura de Supabase con límite diario); recetas propias y colección guardada.
 - **Progreso**: gráficas en vivo de medidas corporales y de kilómetros por día (varias carreras el mismo día se suman). El historial de medidas solo se muestra aquí.
-- **Cuenta**: registro, inicio de sesión, recuperar y cambiar contraseña, exportar datos, borrar cuenta.
+- **Perfil y cuenta** (botón de arriba a la derecha): registro con email o con Google (opcional, ver guía), inicio de sesión, recuperar y cambiar contraseña, exportar datos, borrar cuenta.
 - **Sincronización**: los datos se guardan primero en el dispositivo y se envían a la nube en segundo plano; funciona sin conexión y se actualiza al volver a la app.
 
 ## Estructura
 
 ```
-index.html            Pantalla única con las pestañas y el formulario de acceso
+index.html            Esqueleto: huecos vacíos + carga de scripts (50 líneas)
 styles.css            Estilos propios (el resto usa Tailwind por CDN)
 js/
+  views/              Marcado de la interfaz, una pieza por archivo
+    registry.js       Registro de pestañas/hojas; compone la barra inferior y monta todo
+    header.js         Cabecera
+    tabs/             hoy, calendario, entreno, recetas, progreso, perfil (.js)
+    modals/           sos, meal (comida), auth (pantalla de acceso)
   config.js           URL y clave pública de Supabase (vacío = modo local)
   db.js               Capa sobre localStorage, separada por usuario
   sync.js             Sincronización con la nube (cola, reintentos, estado)
+  ai.js               Cliente de la función de recetas con IA
+  ui.js               Avisos (toast) y diálogos propios: UI.confirm / UI.prompt / showToast
   auth.js             Registro, login, recuperación, cuenta
   storage.js          Exportar / importar datos
   recipe-engine.js    Motor del generador de recetas
@@ -33,8 +40,30 @@ js/
 supabase/
   01-auth.sql         Función para que cada usuario borre su cuenta
   02-datos.sql        Tabla user_data + seguridad por filas (RLS)
+  03-ia.sql           Contador diario de recetas con IA (solo accesible por la función)
+  functions/generate-recipe/index.ts   Edge Function que llama a Gemini (la clave vive en Supabase)
 LEEME-CONFIGURAR.md   Guía paso a paso para activar cuentas y publicar
 ```
+
+## Avisos y confirmaciones
+
+No se usan los cuadros del navegador (`alert`, `confirm`, `prompt`). En su lugar, `js/ui.js` ofrece:
+
+```js
+if (await UI.confirm({ title: '¿Eliminar?', message: '...', confirmText: 'Eliminar', tone: 'danger' })) { ... }
+const t = await UI.prompt({ title: '...', expected: 'ELIMINAR', tone: 'danger' });   // exige escribir el texto
+showToast('Guardado ✓');            // el tipo (ok / warn / error) se deduce del texto, o showToast(msg, 'error')
+```
+
+Los diálogos son accesibles (foco atrapado, Escape cancela, el foco vuelve al botón de origen), respetan «reducir movimiento» y, en acciones destructivas, el foco empieza en «Cancelar».
+
+## Añadir una pestaña nueva
+
+1. Crea `js/views/tabs/<id>.js` con `Views.addTab({ id, label, icon, nav, html })` (`nav: false` la deja fuera de la barra inferior).
+2. Añade su `<script>` en `index.html`, antes de `js/app.js`, y su lógica en `js/<id>.js`.
+3. Si debe pintarse al abrirla, añade una línea en `switchTab` (`js/app.js`).
+
+La barra inferior se genera sola a partir de las pestañas registradas. Cuantas más de 5 haya, más conviene moverlas a un menú.
 
 ## Ejecutar en local
 
@@ -86,3 +115,6 @@ Es un sitio estático: sirve cualquier alojamiento. Con Netlify basta arrastrar 
 - Favoritos, filtros y calorías en recetas.
 - Fusión por entradas (en vez de por bloque) para datos en forma de lista.
 
+## Licencia
+
+MIT. Consulta el archivo [LICENSE](LICENSE).

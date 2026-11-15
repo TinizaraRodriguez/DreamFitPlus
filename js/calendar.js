@@ -141,8 +141,8 @@ function renderCustomCategories() {
     box.innerHTML = custom.map(c => `<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full">${escapeHtml(c)}<button aria-label="Eliminar ${escapeHtml(c)}" data-n="${escapeHtml(c)}" onclick="deleteCustomCategory(this.dataset.n)" class="text-slate-500 hover:text-red-500 cursor-pointer">✕</button></span>`).join('');
 }
 
-function deleteCustomCategory(name) {
-    if (!confirm(`¿Eliminar "${name}"? Los días que la usen pasarán a Descanso Total.`)) return;
+async function deleteCustomCategory(name) {
+    if (!await UI.confirm({ title: `¿Eliminar "${name}"?`, message: 'Los días que la usen pasarán a Descanso Total.', confirmText: 'Eliminar', tone: 'danger' })) return;
     DB.setItem('dreamfit_workout_categories', JSON.stringify(getWorkoutCategories().filter(c => c !== name)));
     const agenda = getAgenda();
     daysOfWeek.forEach(d => { if (agenda[d].activity === name) agenda[d].activity = 'Descanso Total'; });
@@ -183,8 +183,8 @@ function togglePlanEditor() {
     btn.setAttribute('aria-expanded', String(opening));
 }
 
-function resetWeeklyAgenda() {
-    if (confirm('¿Restablecer agenda semanal al plan inicial?')) {
+async function resetWeeklyAgenda() {
+    if (await UI.confirm({ title: '¿Restablecer el plan semanal?', message: 'Volverá al plan inicial y se perderán tus cambios.', confirmText: 'Restablecer', tone: 'warn', icon: 'fa-rotate-left' })) {
         DB.removeItem('dreamfit_agenda_v2');
         agendaDraft = {};
         renderAgenda(); renderMonthlyCalendar(); updateTodayBadge();

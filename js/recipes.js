@@ -146,8 +146,8 @@ function addRecipeToCatalog(newRec) {
     renderRecipesCatalog();
 }
 
-function deleteRecipe(id) {
-    if(confirm('¿Eliminar esta receta?')) {
+async function deleteRecipe(id) {
+    if (await UI.confirm({ title: '¿Eliminar esta receta?', message: 'Se quitará de Mi Colección.', confirmText: 'Eliminar', tone: 'danger' })) {
         let list = getSavedRecipes();
         list = list.filter(r => r.id !== id);
         DB.setItem('dreamfit_custom_recipes', JSON.stringify(list));

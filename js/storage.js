@@ -34,7 +34,7 @@ function getTodayName() {
 
 function getWorkoutCategories() {
     const saved = DB.getItem('dreamfit_workout_categories');
-    return saved ? JSON.parse(saved) : initialWorkoutCategories;
+    return saved ? JSON.parse(saved) : [...initialWorkoutCategories]; // copia: quien la modifique no debe tocar la lista original
 }
 
 function getLearnedWeights() {
@@ -88,21 +88,6 @@ function addHistory(text, date = getTodayKey()) {
     DB.setItem('dreamfit_history', JSON.stringify(history));
 }
 function hasWorkoutOn(key) { return getHistory().some(h => h.date === key && WORKOUT_RE.test(h.text)); }
-
-function showToast(msg) {
-    let t = document.getElementById('toast');
-    if (!t) {
-        t = document.createElement('div');
-        t.id = 'toast';
-        t.setAttribute('role', 'status');
-        t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 max-w-xs text-center bg-slate-900 text-white text-xs px-4 py-2 rounded-xl shadow-lg z-[60] transition-opacity duration-300';
-        document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    t.style.opacity = 1;
-    clearTimeout(t._h);
-    t._h = setTimeout(() => t.style.opacity = 0, 2500);
-}
 
 function exportData() {
     const data = {};

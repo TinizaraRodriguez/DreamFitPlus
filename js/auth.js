@@ -358,16 +358,16 @@ async function changePassword(e) {
 async function logout() {
     if (Sync.enabled) {
         await Sync.flush(); // intenta enviar lo pendiente antes de salir
-        if (Sync.hasPending() && !confirm('Hay cambios que aún no se han enviado a la nube (¿sin conexión?). Si cierras sesión ahora se perderán.\n\n¿Cerrar sesión igualmente?')) return;
+        if (Sync.hasPending() && !await UI.confirm({ title: 'Hay cambios sin enviar', message: 'Algunos cambios aún no se han enviado a la nube (¿estás sin conexión?). Si cierras sesión ahora se perderán.', confirmText: 'Cerrar sesión igualmente', cancelText: 'Volver', tone: 'danger', icon: 'fa-cloud-arrow-up' })) return;
     }
-    try { await Auth.signOut(); } catch (x) { showToast(authMsg(x)); return; }
+    try { await Auth.signOut(); } catch (x) { showToast(authMsg(x), 'error'); return; }
     if (Sync.enabled) { Sync.stop(); DB.clearScope(); Sync.clearMeta(); } // los datos están en la nube; no dejamos copia en un dispositivo compartido
     location.reload();
 }
 async function deleteAccount() {
-    const t = prompt('Esto borrará tu cuenta y todos tus datos de forma permanente.\nEscribe ELIMINAR para confirmar:');
+    const t = await UI.prompt({ title: 'Eliminar mi cuenta', message: 'Se borrarán tu cuenta y todos tus datos de forma permanente. No se puede deshacer.\n\nEscribe ELIMINAR para confirmar.', expected: 'ELIMINAR', placeholder: 'ELIMINAR', confirmText: 'Eliminar para siempre', tone: 'danger', icon: 'fa-user-xmark' });
     if (t !== 'ELIMINAR') return;
-    try { await Auth.deleteAccount(); } catch (x) { showToast('No se pudo eliminar la cuenta. Inténtalo de nuevo.'); return; }
+    try { await Auth.deleteAccount(); } catch (x) { showToast('No se pudo eliminar la cuenta. Inténtalo de nuevo.', 'error'); return; }
     if (Sync.enabled) { Sync.stop(); Sync.clearMeta(); }
     DB.clearScope();
     location.reload();
