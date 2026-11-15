@@ -2,7 +2,7 @@
 // La web NUNCA habla con Gemini directamente: llama a la función segura «generate-recipe» de Supabase,
 // que guarda la clave, comprueba la sesión y aplica el límite diario (ver supabase/functions/generate-recipe).
 const AiRecipes = {
-    TIMEOUT_MS: 60000,
+    TIMEOUT_MS: 90000,
     enabled() {
         return typeof Auth !== 'undefined' && Auth.mode === 'supabase' && !!Auth.user && (window.DREAMFIT_CONFIG || {}).AI_RECIPES === true;
     },
