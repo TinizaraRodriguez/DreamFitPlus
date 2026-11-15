@@ -119,7 +119,8 @@ function strengthPanel() {
     const machines = getDayMachines(getTodayName());
     const hist = getStrength(), today = getTodayKey();
     const isDone = m => (hist[m.name] || [])[0]?.date === today;
-    const header = card(`<div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">${machines.filter(isDone).length}/${machines.length} ejercicios</span></div><p class="text-xs text-slate-700 font-semibold">${getScheme().label} · descanso ${getScheme().restLabel} entre series${getProfile() ? ' · ' + GOALS[eff().goal].label : ''}</p><p class="text-xs text-slate-500">Anota cómo te fue en cada ejercicio: la app ajusta el peso de la próxima vez.</p>`);
+    const pending = machines.filter(m => !isDone(m)).length;
+    const header = card(`<div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">${machines.filter(isDone).length}/${machines.length} ejercicios</span></div><p class="text-xs text-slate-700 font-semibold">${getScheme().label} · descanso ${getScheme().restLabel} entre series${getProfile() ? ' · ' + GOALS[eff().goal].label : ''}</p><p class="text-xs text-slate-500">Anota cómo te fue en cada ejercicio: la app ajusta el peso de la próxima vez.</p>${pending ? `<button onclick="startWorkout()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700 flex items-center justify-center gap-2"><i class="fa-solid fa-play" aria-hidden="true"></i> ${pending < machines.length ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button><p class="text-[10px] text-slate-400 text-center">Modo guiado: serie a serie, con temporizador de descanso. O guarda cada ejercicio a mano aquí abajo.</p>` : ''}`);
     return header + machines.map((m, i) => {
         const sug = suggestWeight(m);
         const top = `<div class="flex justify-between items-start"><h4 class="font-bold text-sm text-slate-900">${m.name}</h4><a href="${m.videoUrl}" target="_blank" rel="noopener" class="text-[11px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md">▶ Vídeo</a></div><p class="text-[11px] text-slate-600"><b>Técnica:</b> ${m.tech}</p>`;
@@ -133,14 +134,18 @@ function strengthPanel() {
     }).join('');
 }
 function saveMachine(i) {
-    const machines = getDayMachines(getTodayName());
-    const m = machines[i];
     const w = parseFloat(document.getElementById('sw-' + i).value), r = choiceVal('sr-' + i);
     if (!w || !r) { showToast('Indica el peso y cómo te fue.'); return; }
-    const s = getStrength();
-    (s[m.name] = s[m.name] || []).unshift({ date: getTodayKey(), weight: w, result: r });
+    commitMachine(i, w, r);
+}
+// Guarda un ejercicio de fuerza de hoy (lo usan el formulario rápido y el modo entreno). `sets` = [{w, reps}] opcional.
+function commitMachine(i, w, r, sets = null) {
+    const machines = getDayMachines(getTodayName()), m = machines[i];
+    const s = getStrength(), entry = { date: getTodayKey(), weight: w, result: r };
+    if (sets) entry.sets = sets;
+    (s[m.name] = s[m.name] || []).unshift(entry);
     DB.setItem('dreamfit_strength', JSON.stringify(s));
-    addHistory(`💪 [Fuerza] ${m.name}: ${w} kg | ${resultTxt(r)}`);
+    addHistory(`💪 [Fuerza] ${m.name}: ${w} kg | ${resultTxt(r)}${sets ? ' · reps ' + sets.map(x => x.reps).join('/') : ''}`);
     if (machines.every(x => s[x.name]?.[0]?.date === getTodayKey())) completeToday('¡Rutina completa! 🏆');
     else showToast(`Guardado: ${m.name} ${w} kg`);
     refreshAfterLog();

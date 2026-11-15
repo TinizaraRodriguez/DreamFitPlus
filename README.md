@@ -6,6 +6,8 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 
 - **Hoy**: resumen del día (agua, comidas, entreno), lista compacta de comidas con hoja para añadir/editar, gráfica de la semana y botón **SOS** para antojos (pasos guiados con temporizador).
 - **Objetivo y plan**: al crear la cuenta se pregunta objetivo (ganar músculo, perder grasa, tonificar, salud), nivel, días de fuerza y dónde entrenas (gimnasio o casa con mancuernas). Con eso se monta la semana, las rutinas y las series/repeticiones/descanso (plantillas, sin IA). Se cambia desde Perfil → Mi objetivo.
+- **Plan (calendario)**: cada día muestra un punto de color por tipo de entreno hecho (violeta fuerza, azul running, naranja clases, rosa movilidad) y un aro del color planificado en los días futuros.
+- **Modo entreno**: en el Entreno de fuerza, «Empezar entrenamiento» abre una pantalla guiada: un ejercicio cada vez, una fila por serie (peso y repeticiones), temporizador de descanso (con ±15 s, aviso sonoro y vibración) y la pantalla se mantiene encendida. Al completar cada ejercicio se guarda con sus series y la app propone el peso de la próxima vez.
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
 - **Calendario**: plan semanal editable con botón de guardar, vista compacta y usable en móvil, y cambios puntuales por día.
 - **Recetas**: generador básico (local, sin IA) por ingredientes, objetivo, momento y sabor; **generador con IA** opcional (Gemini, a través de una función segura de Supabase con límite diario); recetas propias y colección guardada.
@@ -37,6 +39,7 @@ js/
   plan.js             Plantillas de plan: objetivo + nivel + días + lugar -> semana, rutinas y series
   onboarding.js       Hoja de bienvenida / cambio de objetivo y tarjeta «Mi objetivo» del Perfil
   workout.js          Pestaña Entreno
+  workmode.js         Modo entreno a pantalla completa (series + temporizador de descanso)
   progress.js         Pestaña Progreso
   today.js            Pestaña Hoy
   app.js              Arranque y navegación

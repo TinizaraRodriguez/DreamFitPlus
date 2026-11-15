@@ -129,7 +129,7 @@ async function afterLogin() { // ya hay sesión: elegir su espacio de datos, tra
 
 async function boot() {
     Views.mount(); // pinta pestañas, cabecera, barra y hojas antes de cualquier otra cosa
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('ui-dialog')) { closeSosModal(); closeMealModal(); if (ob) skipOnboarding(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('ui-dialog')) { closeSosModal(); closeMealModal(); if (ob) skipOnboarding(); else if (wk) wkExit(); } });
     try { await Auth.init(); }
     catch (e) { AuthUI.show('error', { msg: 'No se pudo conectar con el servicio de cuentas. ' + authMsg(e) }); return; }
     Auth.booted = true;
