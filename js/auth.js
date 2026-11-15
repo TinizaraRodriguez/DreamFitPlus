@@ -270,7 +270,14 @@ const AuthUI = {
 };
 
 // ---------- Tarjeta «Cuenta» (Progreso) ----------
+function updateHeaderAvatar() {
+    const b = document.getElementById('hdr-perfil');
+    if (!b) return;
+    const n = Auth.user && (Auth.user.name || Auth.user.email);
+    b.innerHTML = n ? escapeHtml(n.trim().charAt(0).toUpperCase()) : '<i class="fa-solid fa-user"></i>';
+}
 function renderAccount() {
+    updateHeaderAvatar();
     const box = document.getElementById('account-card');
     if (!box) return;
     if (!Auth.user) {

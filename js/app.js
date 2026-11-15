@@ -1,12 +1,15 @@
 let waterLevel = 0;
-const TABS = ['hoy', 'calendario', 'entreno', 'recetas', 'progreso'];
+const TABS = Views.tabIds();
+let lastTab = 'hoy';
 const MEAL_IDS = { morn: 'meal-morn', lunch: 'meal-lunch', snack: 'meal-snack', dinner: 'meal-dinner' };
 
 function switchTab(tabName) {
+    if (tabName !== 'perfil') lastTab = tabName;
     TABS.forEach(t => {
         const active = t === tabName;
         document.getElementById('tab-' + t).style.display = active ? 'block' : 'none';
         const btn = document.getElementById('nav-' + t);
+        if (!btn) return; // el perfil no está en la barra inferior
         btn.classList.toggle('text-emerald-600', active);
         btn.classList.toggle('font-bold', active);
         btn.classList.toggle('text-slate-500', !active);
@@ -15,8 +18,13 @@ function switchTab(tabName) {
     if (tabName === 'hoy') renderToday();
     if (tabName === 'entreno') renderEntrenoTab();
     if (tabName === 'progreso') renderProgress();
+    if (tabName === 'perfil') renderAccount();
+    const hp = document.getElementById('hdr-perfil');
+    if (hp) { if (tabName === 'perfil') hp.setAttribute('aria-current', 'page'); else hp.removeAttribute('aria-current'); }
     window.scrollTo(0, 0);
 }
+
+function closeProfile() { switchTab(lastTab); }
 
 function setWaterUI(num) {
     waterLevel = num;
@@ -115,6 +123,7 @@ async function afterLogin() { // ya hay sesión: elegir su espacio de datos, tra
 }
 
 async function boot() {
+    Views.mount(); // pinta pestañas, cabecera, barra y hojas antes de cualquier otra cosa
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSosModal(); closeMealModal(); } });
     try { await Auth.init(); }
     catch (e) { AuthUI.show('error', { msg: 'No se pudo conectar con el servicio de cuentas. ' + authMsg(e) }); return; }
