@@ -49,6 +49,7 @@ Views.addTab({
         <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-bowl-food text-emerald-600"></i> Comidas de hoy <span id="meals-count" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">0/4</span></h3>
         <button onclick="openMealModal()" class="text-xs bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-700">+ Añadir</button>
     </div>
+    <div id="nut-day"></div>
     <div id="meals-list" class="space-y-1.5"></div>
     <div id="meals-store" class="hidden"></div>
 </div>

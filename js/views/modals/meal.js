@@ -11,6 +11,14 @@ Views.addModal('meal', `
             <label for="meal-edit-input" class="text-xs font-semibold text-slate-500">¿Qué has comido?</label>
             <input type="text" id="meal-edit-input" onkeydown="if(event.key==='Enter')saveMealModal()" placeholder="Ej: Pollo a la plancha + arroz integral" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
         </div>
+        <div id="meal-nut" class="space-y-2">
+            <p class="text-[11px] font-semibold text-slate-500">Calorías aproximadas <span class="font-normal">(opcional)</span></p>
+            <div id="meal-portions" class="grid grid-cols-3 gap-1.5"></div>
+            <div class="flex gap-2">
+                <label class="flex-1"><span class="sr-only">Calorías</span><div class="flex items-center gap-1"><input type="number" inputmode="numeric" min="0" max="3000" id="meal-kcal" oninput="renderPortions()" placeholder="0" class="w-full min-w-0 px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-center"><span class="text-[11px] text-slate-500">kcal</span></div></label>
+                <label class="flex-1"><span class="sr-only">Proteína</span><div class="flex items-center gap-1"><input type="number" inputmode="numeric" min="0" max="200" id="meal-prot" oninput="renderPortions()" placeholder="0" class="w-full min-w-0 px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-center"><span class="text-[11px] text-slate-500">g prot.</span></div></label>
+            </div>
+        </div>
         <div>
             <p class="text-[11px] font-semibold text-slate-500 mb-1.5">Tus recetas para esta comida</p>
             <div id="meal-modal-chips" class="flex flex-wrap gap-1.5"></div>

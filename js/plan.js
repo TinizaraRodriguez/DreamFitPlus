@@ -100,8 +100,10 @@ function planAgenda(p) {
 }
 
 function applyProfile(p) {
+    getWeights(); // si venías de un perfil antiguo, guarda antes tu peso previo en el historial
     const profile = { goal: p.goal, level: p.level, days: p.days, place: p.place, sex: p.sex, age: p.age, height: p.height, weight: p.weight, activity: p.activity, ts: Date.now() };
     DB.setItem('dreamfit_profile', JSON.stringify(profile));
+    if (profile.weight && (!getWeights().length || getWeights()[0].kg !== profile.weight)) recordWeight(profile.weight); // arranca (o continúa) el historial de peso
     const cats = getWorkoutCategories();
     [ACT_GYM, ACT_HOME].forEach(c => { if (!cats.includes(c)) cats.push(c); });
     DB.setItem('dreamfit_workout_categories', JSON.stringify(cats));

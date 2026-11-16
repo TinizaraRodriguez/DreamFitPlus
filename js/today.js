@@ -24,7 +24,7 @@ function renderToday() {
     renderTodayHeader(); renderTodayWorkout(); renderSosCounter(); renderTodayLive(); renderMealChips();
 }
 function renderTodayLive() { // lo que cambia al escribir / beber agua
-    renderTodaySummary(); renderWaterMsg(); renderWeekCard(); renderMealsList();
+    renderTodaySummary(); renderWaterMsg(); renderWeekCard(); renderMealsList(); renderNutDay();
 }
 function renderTodayHeader() {
     const h = new Date().getHours(), d = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -110,7 +110,7 @@ function renderMealsList() {
     document.getElementById('meals-list').innerHTML = Object.keys(MEAL_IDS).map(k => {
         const v = document.getElementById(MEAL_IDS[k]).value.trim();
         const tail = !v && k === now ? '<span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full whitespace-nowrap">Ahora toca</span>' : `<span class="text-slate-500 text-sm" aria-hidden="true">${v ? '✎' : '+'}</span>`;
-        return `<button type="button" onclick="openMealModal('${k}')" class="w-full flex items-center gap-2 text-left p-2.5 rounded-xl cursor-pointer ${v ? 'bg-emerald-50' : 'bg-slate-50'}"><span class="text-[11px] font-bold w-[4.5rem] shrink-0 text-slate-600">${MEAL_SHORT[k]}</span><span class="flex-1 min-w-0 truncate text-xs ${v ? 'text-slate-800' : 'text-slate-500 italic'}">${v ? escapeHtml(v) : 'Sin registrar'}</span>${tail}</button>`;
+        return `<button type="button" onclick="openMealModal('${k}')" class="w-full flex items-center gap-2 text-left p-2.5 rounded-xl cursor-pointer ${v ? 'bg-emerald-50' : 'bg-slate-50'}"><span class="text-[11px] font-bold w-[4.5rem] shrink-0 text-slate-600">${MEAL_SHORT[k]}</span><span class="flex-1 min-w-0 truncate text-xs ${v ? 'text-slate-800' : 'text-slate-500 italic'}">${v ? escapeHtml(v) : 'Sin registrar'}</span>${nutTag(k)}${tail}</button>`;
     }).join('');
 }
 function openMealModal(k) {
@@ -132,17 +132,22 @@ function renderMealModal() {
         return `<button type="button" aria-pressed="${on}" onclick="selectMealInModal('${k}')" class="py-2 rounded-xl border text-[11px] font-semibold cursor-pointer ${on ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}">${MEAL_SHORT[k]}</button>`;
     }).join('');
     document.getElementById('meal-edit-input').value = document.getElementById(MEAL_IDS[mealModalKey]).value;
+    renderMealNut();
     document.getElementById('meal-modal-title').innerText = MEAL_FULL[mealModalKey];
     renderMealChips();
 }
 function saveMealModal() {
-    const v = document.getElementById('meal-edit-input').value.trim();
+    let v = document.getElementById('meal-edit-input').value.trim();
+    const nut = readMealNut();
+    if (nut === false) { showToast('Revisa las calorías o la proteína: valores no válidos.'); return; }
+    if (!v && nut) v = 'Comida sin detallar'; // solo se anotaron los números
     document.getElementById(MEAL_IDS[mealModalKey]).value = v;
+    if (v && nut) mealNut[mealModalKey] = nut; else delete mealNut[mealModalKey];
     saveState();
     closeMealModal();
     showToast(v ? 'Comida guardada ✓' : 'Comida vaciada');
 }
-function clearMealModal() { document.getElementById('meal-edit-input').value = ''; saveMealModal(); }
+function clearMealModal() { document.getElementById('meal-edit-input').value = ''; document.getElementById('meal-kcal').value = ''; document.getElementById('meal-prot').value = ''; saveMealModal(); }
 function renderMealChips() { // atajos con tus recetas guardadas para la comida elegida
     const box = document.getElementById('meal-modal-chips');
     if (!box) return;
@@ -152,7 +157,10 @@ function renderMealChips() { // atajos con tus recetas guardadas para la comida 
 }
 function pickMealRecipe(btn) {
     const r = getSavedRecipes().find(x => String(x.id) === btn.dataset.id);
-    if (r) document.getElementById('meal-edit-input').value = r.title;
+    if (!r) return;
+    document.getElementById('meal-edit-input').value = r.title;
+    const kc = r.kcal || +((/≈\s*(\d+)\s*kcal/.exec(r.desc || '') || [])[1]), pr = r.protein || +((/≈\s*(\d+)\s*g proteína/.exec(r.desc || '') || [])[1]);
+    if (trackingOn() && (kc || pr)) { document.getElementById('meal-kcal').value = kc || ''; document.getElementById('meal-prot').value = pr || ''; renderPortions(); }
 }
 
 // ---------- Tu semana (últimos 7 días, en vivo) ----------

@@ -8,6 +8,26 @@ Views.addTab({
 <div id="progress-summary" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100"></div>
 
 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+    <h2 class="font-bold text-base text-slate-900 flex items-center gap-2"><i class="fa-solid fa-weight-scale text-emerald-600"></i> Peso</h2>
+    <div id="weight-summary"></div>
+    <div id="weight-range" role="group" aria-label="Periodo de la gráfica" class="flex gap-1.5"></div>
+    <div id="weight-chart" class="space-y-2"></div>
+    <div class="grid grid-cols-2 gap-3 text-xs">
+        <div>
+            <label for="weight-kg" class="font-semibold text-slate-500">Peso (kg)</label>
+            <input type="number" inputmode="decimal" step="0.1" id="weight-kg" oninput="previewWeight()" placeholder="Ej: 68,5" class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+            <label for="weight-date" class="font-semibold text-slate-500">Fecha</label>
+            <input type="date" id="weight-date" class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+    </div>
+    <button onclick="saveWeight()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700 transition">Guardar peso</button>
+    <div id="weight-list" class="text-xs text-slate-600 space-y-1.5"></div>
+    <p class="text-[10px] text-slate-400">Tu peso más reciente actualiza automáticamente tus calorías, macros y agua.</p>
+</div>
+
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
     <h2 class="font-bold text-base text-slate-900 flex items-center gap-2"><i class="fa-solid fa-ruler text-emerald-600"></i> Medidas</h2>
     <div id="measures-chart" class="space-y-2"></div>
     <div class="grid grid-cols-2 gap-3 text-xs">

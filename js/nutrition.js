@@ -102,7 +102,6 @@ async function updateWeight() {
     if (v === null) return;
     const kg = numOr(v);
     if (!(kg >= 30 && kg <= 250)) { showToast('Indica un peso válido (entre 30 y 250 kg).'); return; }
-    DB.setItem('dreamfit_profile', JSON.stringify({ ...p, weight: kg, ts: Date.now() }));
-    renderGoalCard(); renderNutriCard(); renderWaterCard(); renderTodayLive();
+    recordWeight(kg); // guarda en el historial y actualiza perfil, calorías, macros y agua
     showToast(`Peso actualizado: ${String(kg).replace('.', ',')} kg`);
 }

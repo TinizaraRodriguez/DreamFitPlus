@@ -89,6 +89,18 @@ async function deleteMeasure(i) {
     DB.setItem('dreamfit_measures', JSON.stringify(list));
     renderProgress();
 }
+async function editMeasure(i) { // corregir cintura/cadera de un registro
+    const list = getMeasures(), e = list[i]; if (!e) return;
+    const ask = async (title, cur) => UI.prompt({ title, message: `Registro del ${e.date}. Déjalo vacío para quitar este dato.`, value: cur != null ? String(cur) : '', inputType: 'number', inputMode: 'decimal', step: '0.1', confirmText: 'Siguiente', allowEmpty: true });
+    const w = await ask('Cintura (cm)', e.waist); if (w === null) return;
+    const h = await ask('Cadera (cm)', e.hip); if (h === null) return;
+    const wn = w === '' ? null : numOr(w), hn = h === '' ? null : numOr(h);
+    if ((w !== '' && !(wn > 20 && wn < 250)) || (h !== '' && !(hn > 20 && hn < 250))) { showToast('Medidas no válidas (entre 20 y 250 cm).'); return; }
+    if (wn == null && hn == null) { showToast('Deja al menos una medida.'); return; }
+    list[i] = { ...e, waist: wn, hip: hn };
+    DB.setItem('dreamfit_measures', JSON.stringify(list));
+    showToast('Medidas actualizadas ✓'); renderProgress();
+}
 function pickLabels(arr) { // evita que las etiquetas del eje se solapen
     if (arr.length <= 5) return arr.filter(l => l.label);
     const step = Math.ceil(arr.length / 4);
@@ -125,7 +137,7 @@ function renderMeasures(preview = null) {
     }).join('');
     const hint = live ? '<p class="text-[11px] text-amber-700">Vista previa: pulsa «Guardar medidas» para registrarlo.</p>' : '';
     document.getElementById('measures-chart').innerHTML = `<div class="flex gap-4 text-[11px] text-slate-600">${legend}</div>${lineChart(series, '', !preview, pickLabels(labels))}${hint}${deltas}`;
-    document.getElementById('measures-list').innerHTML = list.slice(0, 5).map((e, i) => `<div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg border border-slate-100"><span>${e.date}${e.ts && !e.approx ? ' ' + new Date(e.ts).toTimeString().slice(0, 5) : ''} · Cintura ${e.waist ?? '-'} · Cadera ${e.hip ?? '-'}</span><button aria-label="Eliminar registro del ${e.date}" onclick="deleteMeasure(${i})" class="text-slate-500 hover:text-red-500 px-2 cursor-pointer">✕</button></div>`).join('');
+    document.getElementById('measures-list').innerHTML = list.slice(0, 5).map((e, i) => `<div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg border border-slate-100"><span>${e.date}${e.ts && !e.approx ? ' ' + new Date(e.ts).toTimeString().slice(0, 5) : ''} · Cintura ${e.waist ?? '-'} · Cadera ${e.hip ?? '-'}</span><span class="flex gap-1"><button aria-label="Corregir medidas del ${e.date}" onclick="editMeasure(${i})" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-emerald-100 hover:text-emerald-700 cursor-pointer"><i class="fa-solid fa-pen" aria-hidden="true"></i></button><button aria-label="Eliminar registro del ${e.date}" onclick="deleteMeasure(${i})" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-red-100 hover:text-red-600 cursor-pointer"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></span></div>`).join('');
     const lastW = list.find(e => e.waist != null), lastH = list.find(e => e.hip != null);
     document.getElementById('measure-waist').placeholder = lastW ? `Última: ${lastW.waist}` : 'Ej: 75';
     document.getElementById('measure-hip').placeholder = lastH ? `Última: ${lastH.hip}` : 'Ej: 98';
@@ -247,6 +259,6 @@ async function deleteRun(i) {
 function renderProgress() {
     const km = getSessions().filter(s => s.kind === 'run').reduce((t, s) => t + (s.km || 0), 0);
     document.getElementById('progress-summary').innerHTML = `<div class="grid grid-cols-3 gap-2">${statTile(Object.keys(getLog()).length, 'sesiones totales')}${statTile(trim1(km), 'km corridos')}${statTile('🔥 ' + calcStreak(), 'días de racha')}</div>`;
-    renderMeasures(); renderStrengthProgress(); renderRunProgress();
+    renderWeight(); renderMeasures(); renderStrengthProgress(); renderRunProgress();
 }
 function loadHistory() { renderProgress(); } // los demás módulos llaman a esto tras guardar

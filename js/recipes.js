@@ -95,13 +95,13 @@ function renderAiResult() {
         `<button onclick="generateAiRecipe(true)" class="w-full text-xs text-emerald-700 font-bold py-2 bg-emerald-50 rounded-xl cursor-pointer">Otras ideas con IA</button>
         <p class="text-[10px] text-slate-400">Generado por IA: las calorías son aproximadas y puede haber errores. Revisa siempre alergias e intolerancias. No sustituye el consejo de un profesional.</p>`;
 }
-function useAiRecipe(i) { const r = aiState.items[i]; if (r) sendToMeal(aiState.goal, r.title); }
+function useAiRecipe(i) { const r = aiState.items[i]; if (r) sendToMeal(aiState.goal, r.title, { kcal: numOr(r.calories) || 0, protein: numOr(r.protein_g) || 0 }); }
 function saveAiRecipe(i) {
     const r = aiState.items[i];
     if (!r) return;
     const ing = r.ingredients.map(x => x.name + (x.amount ? ' (' + x.amount + ')' : '')).join(', ');
     const meta = [r.time_min && r.time_min + ' min', r.calories && '≈' + r.calories + ' kcal', r.protein_g && '≈' + r.protein_g + ' g proteína'].filter(Boolean).join(' · ');
-    addRecipeToCatalog({ id: Date.now() + i, title: r.title, desc: `Ingredientes: ${ing}. ${r.steps.map((t, n) => (n + 1) + '. ' + t).join(' ')}${meta ? ' (' + meta + ')' : ''}`, target: aiState.goal, tag: 'IA' });
+    addRecipeToCatalog({ id: Date.now() + i, title: r.title, desc: `Ingredientes: ${ing}. ${r.steps.map((t, n) => (n + 1) + '. ' + t).join(' ')}${meta ? ' (' + meta + ')' : ''}`, target: aiState.goal, tag: 'IA', kcal: numOr(r.calories) || undefined, protein: numOr(r.protein_g) || undefined });
     showToast('¡Receta guardada!');
 }
 

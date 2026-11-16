@@ -45,9 +45,10 @@ function toggleWater(num) {
     saveState();
 }
 
-function sendToMeal(mealType, text) {
+function sendToMeal(mealType, text, nut) {
     const el = document.getElementById(MEAL_IDS[mealType]);
     if (el) el.value = text;
+    const n = nut && cleanNut(nut); if (n) mealNut[mealType] = n; else delete mealNut[mealType];
     saveState();
     switchTab('hoy');
 }
@@ -55,17 +56,21 @@ function sendToMeal(mealType, text) {
 function saveState() {
     const state = { date: getTodayKey(), water: waterLevel };
     Object.entries(MEAL_IDS).forEach(([k, id]) => state[k] = document.getElementById(id).value);
+    state.nut = mealNut;
     DB.setItem('dreamfit_state', JSON.stringify(state));
-    setDayStat(getTodayKey(), { water: waterLevel, meals: mealsCount() });
+    const tot = nutTotals();
+    setDayStat(getTodayKey(), { water: waterLevel, meals: mealsCount(), kcal: tot.kcal, protein: tot.protein, nutMeals: tot.logged });
     renderTodayLive();
 }
 
 function loadState() {
     renderWaterCard(); renderNutriCard();
     const state = safeParse('dreamfit_state', null);
+    mealNut = {};
     // Solo se restaura el estado si es de hoy: cada día empieza limpio
     if (state && state.date === getTodayKey()) {
         setWaterUI(state.water || 0); // sin guardar: así no se pisan las comidas
+        mealNut = state.nut && typeof state.nut === 'object' ? state.nut : {};
         Object.entries(MEAL_IDS).forEach(([k, id]) => { document.getElementById(id).value = state[k] || ''; });
     }
     renderAllSelects();
@@ -80,10 +85,11 @@ async function resetDay() {
     const yes = await UI.confirm({ title: '¿Empezar un nuevo día?', message: 'Se vaciarán el agua, las comidas y la marca de entreno de hoy.', confirmText: 'Empezar de cero', tone: 'warn', icon: 'fa-rotate-right' });
     if (yes) {
         DB.removeItem('dreamfit_state');
+        mealNut = {};
         setWaterUI(0);
         Object.values(MEAL_IDS).forEach(id => document.getElementById(id).value = '');
         setDayCompleted(getTodayKey(), false);
-        setDayStat(getTodayKey(), { water: 0, meals: 0 });
+        setDayStat(getTodayKey(), { water: 0, meals: 0, kcal: 0, protein: 0, nutMeals: 0 });
         updateTodayBadge();
         renderAgenda();
         renderMonthlyCalendar();
