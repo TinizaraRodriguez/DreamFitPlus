@@ -7,6 +7,7 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 - **Hoy**: resumen del día (agua, comidas, entreno), lista compacta de comidas con hoja para añadir/editar, gráfica de la semana y botón **SOS** para antojos (pasos guiados con temporizador).
 - **Objetivo y plan**: al crear la cuenta se pregunta objetivo (ganar músculo, perder grasa, tonificar, salud), nivel, días de fuerza y dónde entrenas (gimnasio o casa con mancuernas). Con eso se monta la semana, las rutinas y las series/repeticiones/descanso (plantillas, sin IA). Se cambia desde Perfil → Mi objetivo.
 - **Plan (calendario)**: cada día muestra un punto de color por tipo de entreno hecho (violeta fuerza, azul running, naranja clases, rosa movilidad) y un aro del color planificado en los días futuros.
+- **Metabolismo basal y nutrición**: en la bienvenida (y desde Perfil) se piden sexo, edad, altura, peso y nivel de actividad. Con la fórmula Mifflin-St Jeor se calcula el metabolismo basal, el mantenimiento y las calorías y macros según el objetivo (con mínimos de seguridad y sin déficit para menores de 18). Se usan en Perfil, en Recetas (reparto por comida y alimentos recomendados), en la meta de agua de Hoy y en el generador con IA.
 - **Modo entreno**: en el Entreno de fuerza, «Empezar entrenamiento» abre una pantalla guiada: un ejercicio cada vez, una fila por serie (peso y repeticiones), temporizador de descanso (con ±15 s, aviso sonoro y vibración) y la pantalla se mantiene encendida. Al completar cada ejercicio se guarda con sus series y la app propone el peso de la próxima vez.
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
 - **Calendario**: plan semanal editable con botón de guardar, vista compacta y usable en móvil, y cambios puntuales por día.
@@ -36,6 +37,7 @@ js/
   recipe-engine.js    Motor del generador de recetas
   recipes.js          Pestaña Recetas
   calendar.js         Pestaña Calendario
+  nutrition.js        Metabolismo basal, calorías, macros, agua y tarjeta de nutrición
   plan.js             Plantillas de plan: objetivo + nivel + días + lugar -> semana, rutinas y series
   onboarding.js       Hoja de bienvenida / cambio de objetivo y tarjeta «Mi objetivo» del Perfil
   workout.js          Pestaña Entreno

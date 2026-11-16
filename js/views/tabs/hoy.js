@@ -35,15 +35,11 @@ Views.addTab({
 <!-- Agua -->
 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
     <div class="flex justify-between items-center">
-        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-droplet text-blue-500"></i> Hidratación (Meta: 2 Litros)</h3>
+        <h3 id="water-title" class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-droplet text-blue-500"></i> Hidratación (Meta: 2 L)</h3>
         <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full" id="water-count">0 / 4 vasos</span>
     </div>
-    <div class="flex gap-2 justify-between">
-        <button onclick="toggleWater(1)" class="flex-1 py-3 rounded-xl border border-blue-100 bg-blue-50/50 text-slate-500 cursor-pointer" id="w-1" aria-label="Vaso 1"><i class="fa-solid fa-glass-water"></i></button>
-        <button onclick="toggleWater(2)" class="flex-1 py-3 rounded-xl border border-blue-100 bg-blue-50/50 text-slate-500 cursor-pointer" id="w-2" aria-label="Vaso 2"><i class="fa-solid fa-glass-water"></i></button>
-        <button onclick="toggleWater(3)" class="flex-1 py-3 rounded-xl border border-blue-100 bg-blue-50/50 text-slate-500 cursor-pointer" id="w-3" aria-label="Vaso 3"><i class="fa-solid fa-glass-water"></i></button>
-        <button onclick="toggleWater(4)" class="flex-1 py-3 rounded-xl border border-blue-100 bg-blue-50/50 text-slate-500 cursor-pointer" id="w-4" aria-label="Vaso 4"><i class="fa-solid fa-glass-water"></i></button>
-    </div>
+    <div id="water-buttons" class="flex flex-wrap gap-2 justify-between"></div>
+
     <p id="water-msg" class="text-[11px] text-blue-700"></p>
 </div>
 

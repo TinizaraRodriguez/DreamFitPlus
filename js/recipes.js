@@ -66,7 +66,7 @@ async function generateAiRecipe(more = false) {
     box.classList.remove('hidden');
     box.innerHTML = '<p class="text-xs text-slate-500" role="status">La IA está preparando tus recetas… puede tardar unos segundos.</p>';
     try {
-        const d = await AiRecipes.generate({ ingredients: raw, goal, flavor, restrictions, avoid });
+        const d = await AiRecipes.generate({ ingredients: raw, goal, flavor, restrictions, avoid, nutrition: nutritionTarget(goal) || undefined });
         aiState = { items: d.recipes, goal, flavor, remaining: d.remaining, limit: d.limit, busy: false };
         renderAiResult();
     } catch (e) {

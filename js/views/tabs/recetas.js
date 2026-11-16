@@ -5,6 +5,8 @@ Views.addTab({
     icon: 'fa-utensils',
     nav: true,   // false = no aparece en la barra inferior
     html: `
+<div id="nutri-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
+
 <div class="bg-gradient-to-br from-teal-800 to-emerald-900 text-white p-5 rounded-2xl shadow-md space-y-4">
     <div class="flex items-center gap-2">
         <i class="fa-solid fa-wand-magic-sparkles text-amber-300 text-lg"></i>

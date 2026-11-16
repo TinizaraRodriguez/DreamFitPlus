@@ -100,7 +100,7 @@ function planAgenda(p) {
 }
 
 function applyProfile(p) {
-    const profile = { goal: p.goal, level: p.level, days: p.days, place: p.place, ts: Date.now() };
+    const profile = { goal: p.goal, level: p.level, days: p.days, place: p.place, sex: p.sex, age: p.age, height: p.height, weight: p.weight, activity: p.activity, ts: Date.now() };
     DB.setItem('dreamfit_profile', JSON.stringify(profile));
     const cats = getWorkoutCategories();
     [ACT_GYM, ACT_HOME].forEach(c => { if (!cats.includes(c)) cats.push(c); });
@@ -108,5 +108,5 @@ function applyProfile(p) {
     DB.setItem('dreamfit_agenda_v2', JSON.stringify(planAgenda(profile)));
     renderAllSelects(); renderAgenda(); renderMonthlyCalendar(); updateTodayBadge();
     if (typeof renderEntrenoTab === 'function') renderEntrenoTab();
-    renderGoalCard();
+    renderGoalCard(); renderNutriCard(); renderWaterCard(); renderTodayLive();
 }

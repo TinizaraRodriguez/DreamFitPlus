@@ -28,14 +28,16 @@ function closeProfile() { switchTab(lastTab); }
 
 function setWaterUI(num) {
     waterLevel = num;
-    for (let i = 1; i <= 4; i++) {
+    const N = waterGoal();
+    for (let i = 1; i <= N; i++) {
         const btn = document.getElementById('w-' + i);
+        if (!btn) continue;
         btn.classList.toggle('bg-blue-500', i <= num);
         btn.classList.toggle('text-white', i <= num);
         btn.classList.toggle('bg-blue-50/50', i > num);
         btn.classList.toggle('text-slate-500', i > num);
     }
-    document.getElementById('water-count').innerText = waterLevel + ' / 4 vasos';
+    document.getElementById('water-count').innerText = waterLevel + ' / ' + N + ' vasos';
 }
 
 function toggleWater(num) {
@@ -59,6 +61,7 @@ function saveState() {
 }
 
 function loadState() {
+    renderWaterCard(); renderNutriCard();
     const state = safeParse('dreamfit_state', null);
     // Solo se restaura el estado si es de hoy: cada día empieza limpio
     if (state && state.date === getTodayKey()) {

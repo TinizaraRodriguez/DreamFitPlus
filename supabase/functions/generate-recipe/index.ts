@@ -12,6 +12,7 @@
 const env = (k: string) => (globalThis as any).Deno?.env?.get(k) ?? (globalThis as any).process?.env?.[k];
 
 const MEALS: Record<string, string> = { morn: 'media mañana (tentempié ligero)', lunch: 'almuerzo principal', snack: 'merienda', dinner: 'cena ligera' };
+const OBJECTIVES: Record<string, string> = { muscle: 'ganar músculo', fat: 'perder grasa', tone: 'tonificar', health: 'salud y bienestar' };
 const FLAVORS: Record<string, string> = { salado: 'salado', dulce: 'dulce y sin azúcar añadido' };
 
 const SYSTEM = `Eres un asistente de cocina saludable para una app de fitness. Respondes SIEMPRE en español de España.
@@ -71,7 +72,14 @@ export function parseInput(b: any) {
   const flavor = FLAVORS[b?.flavor] ? b.flavor : 'salado';
   const restrictions = clean(b?.restrictions, 150);
   const avoid = Array.isArray(b?.avoid) ? b.avoid.map((t: unknown) => clean(t, 80)).filter(Boolean).slice(0, 6) : [];
-  return { ingredients, goal, flavor, restrictions, avoid };
+  // Objetivo nutricional por ración (opcional): kcal y proteína de esa comida según el perfil de la persona
+  let target: { kcal: number; protein_g: number; objective: string } | null = null;
+  const t = b?.nutrition;
+  if (t && typeof t === 'object') {
+    const kcal = Math.round(Number(t.kcal)), protein_g = Math.round(Number(t.protein_g));
+    if (kcal >= 80 && kcal <= 1500 && protein_g >= 3 && protein_g <= 120) target = { kcal, protein_g, objective: OBJECTIVES[t.objective] || '' };
+  }
+  return { ingredients, goal, flavor, restrictions, avoid, target };
 }
 
 const json = (body: unknown, status: number, cors: Record<string, string>) =>
@@ -125,6 +133,7 @@ export async function handle(req: Request): Promise<Response> {
   const prompt = `Ingredientes disponibles: ${inp.ingredients.join(', ')}.
 Momento: ${MEALS[inp.goal]}. Sabor: ${FLAVORS[inp.flavor]}.
 Alergias o restricciones: ${inp.restrictions || 'ninguna indicada'}.
+${inp.target ? `Objetivo nutricional orientativo por ración: unas ${inp.target.kcal} kcal y unos ${inp.target.protein_g} g de proteína${inp.target.objective ? ' (la persona quiere ' + inp.target.objective + ')' : ''}. Ajusta las cantidades para acercarte a ello.` : ''}
 ${inp.avoid.length ? 'Ya te propuse estas (no las repitas): ' + inp.avoid.join('; ') + '.' : ''}
 Dame 2 recetas distintas.`;
   const genFor = (m: string, schema: boolean) => { // menos «pensar» = respuestas más rápidas; cada familia usa un ajuste distinto

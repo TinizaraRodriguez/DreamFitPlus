@@ -1,7 +1,6 @@
 // ===== PESTAÑA HOY =====
 const MEAL_SHORT = { morn: 'Tentempié', lunch: 'Almuerzo', snack: 'Merienda', dinner: 'Cena' };
 const MEAL_FULL = { morn: 'Tentempié (10-11h)', lunch: 'Almuerzo principal', snack: 'Merienda', dinner: 'Cena' };
-const WATER_GOAL = 4;
 let lastPct = 0;
 
 // ---------- Registro diario (agua, comidas y antojos por fecha) ----------
@@ -41,7 +40,7 @@ function renderTodaySummary() {
         const sp = kind === 'strength' ? strengthProgress() : null;
         parts.push({ label: 'Entreno', frac: done ? 1 : sp ? sp.done / sp.total : 0, text: done ? 'Hecho' : sp ? `${sp.done}/${sp.total}` : 'Pendiente' });
     }
-    parts.push({ label: 'Agua', frac: waterLevel / WATER_GOAL, text: `${waterLevel}/${WATER_GOAL}` });
+    parts.push({ label: 'Agua', frac: waterLevel / waterGoal(), text: `${waterLevel}/${waterGoal()}` });
     parts.push({ label: 'Comidas', frac: meals / 4, text: `${meals}/4` });
     const pct = Math.round(parts.reduce((t, p) => t + p.frac, 0) / parts.length * 100);
     const msg = pct === 0 ? '¡Empieza el día con un vaso de agua!' : pct < 50 ? 'Buen comienzo, sigue así.' : pct < 100 ? '¡Vas genial, ya casi!' : '¡Día perfecto! 🏆';
@@ -96,7 +95,7 @@ function renderTodayWorkout() {
 
 // ---------- Agua ----------
 function renderWaterMsg() {
-    const left = WATER_GOAL - waterLevel;
+    const left = waterGoal() - waterLevel;
     document.getElementById('water-msg').innerText = left <= 0 ? '¡Meta de hidratación cumplida! 💧' : `Te ${left === 1 ? 'falta 1 vaso' : 'faltan ' + left + ' vasos'} para la meta de hoy.`;
 }
 
@@ -164,8 +163,8 @@ function renderWeekCard() {
         const key = shiftDays(-i), d = dateFromKey(key), isToday = key === today;
         const st = isToday ? { water: waterLevel, meals } : (days[key] || {});
         const w = st.water || 0, m = st.meals || 0, done = isDayCompleted(key);
-        cells.push(`<div role="img" aria-label="${letters[d.getDay()]} ${d.getDate()}: ${w} de ${WATER_GOAL} vasos, ${m} de 4 comidas${done ? ', entreno hecho' : ''}" class="flex flex-col items-center gap-1">
-            <div class="h-16 w-full flex items-end justify-center gap-1"><div class="w-2.5 rounded-t ${w ? 'bg-blue-400' : 'bg-slate-200'}" style="height:${Math.max(w / WATER_GOAL * 100, 4)}%"></div><div class="w-2.5 rounded-t ${m ? 'bg-amber-400' : 'bg-slate-200'}" style="height:${Math.max(m / 4 * 100, 4)}%"></div></div>
+        cells.push(`<div role="img" aria-label="${letters[d.getDay()]} ${d.getDate()}: ${w} de ${waterGoal()} vasos, ${m} de 4 comidas${done ? ', entreno hecho' : ''}" class="flex flex-col items-center gap-1">
+            <div class="h-16 w-full flex items-end justify-center gap-1"><div class="w-2.5 rounded-t ${w ? 'bg-blue-400' : 'bg-slate-200'}" style="height:${Math.max(w / waterGoal() * 100, 4)}%"></div><div class="w-2.5 rounded-t ${m ? 'bg-amber-400' : 'bg-slate-200'}" style="height:${Math.max(m / 4 * 100, 4)}%"></div></div>
             <span class="text-[10px] ${isToday ? 'font-bold text-emerald-700' : 'text-slate-500'}">${letters[d.getDay()]}</span>
             <span class="text-[11px]">${done ? '✅' : '·'}</span></div>`);
     }
@@ -186,7 +185,7 @@ function sosStep(step) {
     clearInterval(sosTimer); sosTimer = null;
     const body = document.getElementById('sos-body');
     if (step === 'start') {
-        body.innerHTML = `<p><b>Paso 1:</b> bebe un vaso grande de agua y espera 5 minutos. Muchas veces es sed o aburrimiento.</p>${sosBtn('sosDrink()', waterLevel < WATER_GOAL ? 'Ya bebí (+1 vaso) · empezar 5 min' : 'Empezar 5 min')}`;
+        body.innerHTML = `<p><b>Paso 1:</b> bebe un vaso grande de agua y espera 5 minutos. Muchas veces es sed o aburrimiento.</p>${sosBtn('sosDrink()', waterLevel < waterGoal() ? 'Ya bebí (+1 vaso) · empezar 5 min' : 'Empezar 5 min')}`;
     } else if (step === 'timer') {
         body.innerHTML = `<p class="text-center">Respira hondo y date un paseo corto mientras esperas.</p><p id="sos-clock" class="text-center text-4xl font-bold text-amber-600" aria-live="off">5:00</p>${sosBtn('sosStep(\'ask\')', 'Saltar la espera', 'bg-slate-100 text-slate-700 hover:bg-slate-200')}`;
         sosEnd = Date.now() + 300000;
@@ -207,7 +206,7 @@ function sosStep(step) {
     }
 }
 function sosDrink() {
-    if (waterLevel < WATER_GOAL) { setWaterUI(waterLevel + 1); saveState(); }
+    if (waterLevel < waterGoal()) { setWaterUI(waterLevel + 1); saveState(); }
     sosStep('timer');
 }
 function sosWin() {
