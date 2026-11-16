@@ -18,7 +18,7 @@ function switchTab(tabName) {
     if (tabName === 'hoy') renderToday();
     if (tabName === 'entreno') renderEntrenoTab();
     if (tabName === 'progreso') renderProgress();
-    if (tabName === 'perfil') { renderAccount(); renderGoalCard(); }
+    if (tabName === 'perfil') { renderAccount(); renderGoalCard(); renderThemeCard(); }
     const hp = document.getElementById('hdr-perfil');
     if (hp) { if (tabName === 'perfil') hp.setAttribute('aria-current', 'page'); else hp.removeAttribute('aria-current'); }
     window.scrollTo(0, 0);

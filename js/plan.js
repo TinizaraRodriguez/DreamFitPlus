@@ -73,11 +73,20 @@ function getScheme(p = eff()) {
     const [sets, reps, rest] = SCHEMES[p.goal][p.level];
     return { sets, reps, rest, label: `${sets}×${reps}`, restLabel: rest >= 60 && rest % 60 === 0 ? rest / 60 + ' min' : rest + ' s' };
 }
+// Los pesos de ROLES están pensados para una mujer de complexión media (≈ 62 kg). Con sexo y peso del perfil se escalan:
+// más peso corporal y/o hombre = punto de partida algo mayor. Sin esos datos devuelve 1 (no cambia nada).
+const BODY_REF = { f: 62, m: 78, x: 70 };      // peso corporal de referencia (kg) por sexo
+const SEX_STRENGTH = { f: 1, m: 1.4, x: 1.2 }; // fuerza media de partida respecto a la referencia
+function bodyFactor(p = eff()) {
+    if (!SEX_STRENGTH[p.sex] || !(p.weight >= 30 && p.weight <= 250)) return 1;
+    const bw = Math.min(1.3, Math.max(0.8, Math.pow(p.weight / BODY_REF[p.sex], 0.7))); // el peso corporal influye, pero menos que proporcional
+    return Math.round(SEX_STRENGTH[p.sex] * bw * 100) / 100;
+}
 function planRoutines(p = eff()) {
-    const n = LEVELS[p.level].n + (p.goal === 'muscle' && p.level === 'adv' ? 1 : 0), step = p.place === 'home' ? 2 : 2.5;
+    const n = LEVELS[p.level].n + (p.goal === 'muscle' && p.level === 'adv' ? 1 : 0), step = p.place === 'home' ? 2 : 2.5, bf = bodyFactor(p);
     return routinePlan(p).map(r => ROUTINES[r].slice(0, n).map(role => {
         const [name, tech, w, q] = ROLES[role][p.place];
-        const base = p.place === 'home' ? w * (p.level === 'adv' ? 1.5 : p.level === 'mid' ? 1.25 : 1) : w * LEVELS[p.level].f;
+        const base = (p.place === 'home' ? w * (p.level === 'adv' ? 1.5 : p.level === 'mid' ? 1.25 : 1) : w * LEVELS[p.level].f) * bf;
         return { name, tech, videoUrl: yt(q), defaultWeight: Math.max(step, Math.round(base / step) * step) };
     }));
 }
@@ -101,7 +110,8 @@ function planAgenda(p) {
 
 function applyProfile(p) {
     getWeights(); // si venías de un perfil antiguo, guarda antes tu peso previo en el historial
-    const profile = { goal: p.goal, level: p.level, days: p.days, place: p.place, sex: p.sex, age: p.age, height: p.height, weight: p.weight, activity: p.activity, ts: Date.now() };
+    const prev = getProfile(), kcalAdj = p.kcalAdj !== undefined ? p.kcalAdj : (prev && prev.goal === p.goal ? prev.kcalAdj || 0 : 0); // cambiar de objetivo reinicia los ajustes
+    const profile = { goal: p.goal, level: p.level, days: p.days, place: p.place, sex: p.sex, age: p.age, height: p.height, weight: p.weight, activity: p.activity, kcalAdj, ts: Date.now() };
     DB.setItem('dreamfit_profile', JSON.stringify(profile));
     if (profile.weight && (!getWeights().length || getWeights()[0].kg !== profile.weight)) recordWeight(profile.weight); // arranca (o continúa) el historial de peso
     const cats = getWorkoutCategories();

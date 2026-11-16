@@ -259,6 +259,6 @@ async function deleteRun(i) {
 function renderProgress() {
     const km = getSessions().filter(s => s.kind === 'run').reduce((t, s) => t + (s.km || 0), 0);
     document.getElementById('progress-summary').innerHTML = `<div class="grid grid-cols-3 gap-2">${statTile(Object.keys(getLog()).length, 'sesiones totales')}${statTile(trim1(km), 'km corridos')}${statTile('🔥 ' + calcStreak(), 'días de racha')}</div>`;
-    renderWeight(); renderMeasures(); renderStrengthProgress(); renderRunProgress();
+    renderWeekSummary(); renderWeight(); renderMeasures(); renderStrengthProgress(); renderRunProgress();
 }
 function loadHistory() { renderProgress(); } // los demás módulos llaman a esto tras guardar

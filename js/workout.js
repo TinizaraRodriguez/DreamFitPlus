@@ -110,7 +110,7 @@ function renderEntrenoPanel() {
 function suggestWeight(m) {
     const last = (getStrength()[m.name] || [])[0];
     const step = eff().place === 'home' ? 2 : 2.5;
-    if (!last) return { w: getLearnedWeights()[m.name] || m.defaultWeight, why: 'Peso inicial recomendado.' };
+    if (!last) return { w: getLearnedWeights()[m.name] || m.defaultWeight, why: 'Peso inicial recomendado' + (bodyFactor() !== 1 ? ', ajustado a tu peso y sexo.' : '.') };
     if (last.result === 'yes') return { w: last.weight + step, why: `Completaste todo con ${last.weight} kg: sube ${step} kg.` };
     if (last.result === 'no') return { w: Math.max(step, last.weight - step), why: `Costó con ${last.weight} kg: baja ${step} kg.` };
     return { w: last.weight, why: `Casi con ${last.weight} kg: repite para consolidar.` };

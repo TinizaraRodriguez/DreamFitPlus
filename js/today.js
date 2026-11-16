@@ -21,7 +21,7 @@ function strengthProgress() {
 // ---------- Render general ----------
 function updateTodayBadge() { renderToday(); } // otros módulos llaman a este nombre
 function renderToday() {
-    renderTodayHeader(); renderTodayWorkout(); renderSosCounter(); renderTodayLive(); renderMealChips();
+    renderTodayHeader(); renderTodayWorkout(); renderSosCounter(); renderTodayLive(); renderMealChips(); renderAdviceCard();
 }
 function renderTodayLive() { // lo que cambia al escribir / beber agua
     renderTodaySummary(); renderWaterMsg(); renderWeekCard(); renderMealsList(); renderNutDay();

@@ -18,6 +18,9 @@ Views.addTab({
     <div id="today-summary" class="space-y-3"></div>
 </div>
 
+<!-- Revisión del plan (solo aparece cuando toca) -->
+<div id="advice-card" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-emerald-200 space-y-2.5"></div>
+
 <!-- Botón SOS Anti-Picoteo -->
 <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 text-white shadow-md">
     <div class="flex items-center justify-between gap-3">

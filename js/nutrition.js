@@ -36,9 +36,10 @@ function calcNutrition(p) {
     const tdee = Math.round(bmr * factor / 10) * 10;
     let adj = goal ? KCAL_ADJUST[goal] : 0;
     if (p.age < 18 && adj < 0) { adj = 0; notes.push('Al ser menor de 18 años no aplicamos déficit de calorías: en crecimiento no es recomendable. Consúltalo con tu médico.'); }
-    let kcal = Math.round(tdee * (1 + adj) / 10) * 10;
+    const tweak = Math.max(-300, Math.min(300, p.kcalAdj || 0)); // ajustes que aceptaste en «Ajuste del plan» (kcal/día)
+    let kcal = Math.round((tdee * (1 + adj) + (p.age < 18 && tweak < 0 ? 0 : tweak)) / 10) * 10;
     const floor = Math.max(bmr, p.sex === 'm' ? 1500 : p.sex === 'f' ? 1200 : 1350);
-    if (adj < 0 && kcal < floor) { kcal = Math.ceil(floor / 10) * 10; notes.push('Hemos limitado el déficit para que no bajes de un mínimo seguro.'); }
+    if ((adj < 0 || tweak < 0) && kcal < floor) { kcal = Math.ceil(floor / 10) * 10; notes.push('Hemos limitado el déficit para que no bajes de un mínimo seguro.'); }
     const protein = Math.round(p.weight * (goal ? PROTEIN_PER_KG[goal] : 1.6));
     const fat = Math.round(Math.max(p.weight * 0.6, kcal * 0.25 / 9));
     const carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
@@ -46,7 +47,7 @@ function calcNutrition(p) {
     const glasses = Math.min(8, Math.max(3, Math.round(ml / 500))); // vaso grande ≈ 500 ml
     const meals = {};
     Object.entries(MEAL_SPLIT).forEach(([k, s]) => { meals[k] = { kcal: Math.round(kcal * s / 10) * 10, protein: Math.round(protein * s) }; });
-    return { bmr, tdee, kcal, adj, protein, fat, carbs, ml, glasses, meals, notes, factor };
+    return { bmr, tdee, kcal, adj, tweak, protein, fat, carbs, ml, glasses, meals, notes, factor };
 }
 const myNutrition = () => calcNutrition(getProfile());
 

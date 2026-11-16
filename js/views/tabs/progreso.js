@@ -7,6 +7,8 @@ Views.addTab({
     html: `
 <div id="progress-summary" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100"></div>
 
+<div id="week-summary" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
+
 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
     <h2 class="font-bold text-base text-slate-900 flex items-center gap-2"><i class="fa-solid fa-weight-scale text-emerald-600"></i> Peso</h2>
     <div id="weight-summary"></div>

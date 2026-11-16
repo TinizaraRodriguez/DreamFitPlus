@@ -11,6 +11,8 @@ Views.addTab({
 
 <div id="goal-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
 
+<div id="theme-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
+
 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
     <h3 class="font-bold text-sm text-slate-900">Copia de seguridad</h3>
     <p class="text-xs text-slate-500">Descarga tus datos o restáuralos desde un archivo.</p>
