@@ -1,0 +1,14 @@
+{
+  "name": "dreamfit",
+  "version": "1.0.0",
+  "description": "Mi Plan Fitness: entrenos, nutrición y progreso (web móvil con Supabase)",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev-server.js",
+    "start": "node scripts/dev-server.js",
+    "build": "node scripts/build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,4 +1,6 @@
 {
+  // Cloudflare (Workers con archivos estáticos): publica la carpeta dist/ que genera `npm run build`.
+  // El nombre debe coincidir con el del proyecto en Cloudflare.
   "name": "dreamfit",
   "compatibility_date": "2026-11-16",
   "assets": {

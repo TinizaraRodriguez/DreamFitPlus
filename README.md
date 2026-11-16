@@ -23,6 +23,10 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 ```
 index.html            Esqueleto: huecos vacíos + carga de scripts (50 líneas)
 styles.css            Estilos propios (el resto usa Tailwind por CDN)
+_headers              Cabeceras de seguridad y caché (Cloudflare Pages / Netlify)
+package.json          Scripts: npm run dev (servidor local) y npm run build (carpeta dist/)
+wrangler.jsonc         Configuración de Cloudflare (publica dist/)
+scripts/              dev-server.js (servidor local) y build.js (prepara dist/)
 js/
   views/              Marcado de la interfaz, una pieza por archivo
     registry.js       Registro de pestañas/hojas; compone la barra inferior y monta todo
@@ -79,12 +83,17 @@ La barra inferior se genera sola a partir de las pestañas registradas. Cuantas 
 
 ## Ejecutar en local
 
-No hay paso de compilación. Sirve la carpeta con cualquier servidor estático:
+No hay paso de compilación ni dependencias que instalar. Necesitas [Node.js](https://nodejs.org) 18 o superior:
 
 ```bash
-python3 -m http.server 8000
-# abre http://localhost:8000
+npm run dev
+# abre http://localhost:5173  (también te muestra la dirección para probar desde el móvil en la misma wifi)
 ```
+
+Otro puerto: `PORT=3000 npm run dev` (en Windows PowerShell: `$env:PORT=3000; npm run dev`).
+El servidor (`scripts/dev-server.js`) no usa librerías y desactiva la caché para ver siempre tus últimos cambios. Sin Node también vale cualquier servidor estático, p. ej. `python3 -m http.server 8000`.
+
+Si pruebas el inicio de sesión (Google o correo) en local, añade `http://localhost:5173` en Supabase → Authentication → URL Configuration → **Redirect URLs**.
 
 Con `js/config.js` vacío la app funciona en **modo local** (sin cuentas; datos solo en el navegador).
 Para ver las pantallas de registro sin Supabase, abre `index.html?demo=1` (modo demostración; `?demo=off` lo desactiva). No uses contraseñas reales en ese modo.
@@ -107,7 +116,25 @@ Más detalle y consejos (límite de correos, confirmación de email) en [`LEEME-
 
 ## Publicar
 
-Es un sitio estático: sirve cualquier alojamiento. Con Netlify basta arrastrar la carpeta a <https://app.netlify.com/drop>.
+Es un sitio estático: sirve cualquier alojamiento. Recomendado: **Cloudflare Pages** conectado al repositorio de GitHub (gratis, 500 builds al mes). Cada vez que subes cambios a `main` se publica solo.
+
+`npm run build` copia a `dist/` solo lo que necesita la web (`index.html`, `styles.css`, `js/` y `_headers`), así no se publican `supabase/`, este README ni los scripts, y comprueba que no falte ningún archivo que cargue `index.html`.
+
+**Cloudflare** (pasos; los nombres de los menús pueden cambiar). Hoy el asistente crea un *Worker* con archivos estáticos, y el repositorio ya trae el `wrangler.jsonc` que necesita:
+1. En <https://dash.cloudflare.com> → **Workers & Pages** → **Create application** → importa el repositorio de GitHub (puede ser privado).
+2. **Project name:** `dreamfitplus` (el mismo que el `name` de `wrangler.jsonc`; si usas otro, cámbialo también ahí). **Build command:** `npm run build`. **Deploy command:** `npx wrangler deploy` (el que viene por defecto). Rama de producción `main`.
+3. Pulsa **Deploy**. Te da una dirección tipo `https://dreamfitplus.tu-subdominio.workers.dev` (o `.pages.dev` si usas Pages clásico, con directorio de salida `dist`).
+4. Añade esa dirección en:
+   - Supabase → Authentication → URL Configuration: **Site URL** y **Redirect URLs**.
+   - El secreto `ALLOWED_ORIGIN` de la función de IA (varias direcciones separadas por comas).
+   - Google Cloud (si usas Google): **Orígenes autorizados de JavaScript**.
+5. Prueba el inicio de sesión y, cuando todo funcione, desactiva la publicación automática en Netlify o borra ese proyecto.
+
+Consejo: en los ajustes de compilación puedes desactivar **Preview builds** si solo trabajas en `main`, para no gastar builds.
+
+`_headers` añade cabeceras de seguridad y obliga al navegador a comprobar si hay scripts nuevos (no llevan versión en el nombre).
+
+**Netlify** también sirve: con el comando `npm run build` y el directorio `dist`. Ojo: en su plan gratuito cada publicación gasta 15 de los 300 créditos mensuales.
 
 ## Seguridad y privacidad
 
