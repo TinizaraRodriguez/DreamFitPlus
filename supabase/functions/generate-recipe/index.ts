@@ -174,7 +174,7 @@ Dame 2 recetas distintas.`;
       }
       if (!g.ok) {
         const status = g.status; console.error('gemini', status, tag, (await g.text()).slice(0, 300));
-        if (status === 429) { lastCode = 'busy'; lastStatus = 503; lastMsg = busyMsg; return 'stop'; }
+        if (status === 429) { lastCode = 'busy'; lastStatus = 503; lastMsg = busyMsg; return 'next'; } // la cuota es por modelo: se prueba el siguiente
         if (status === 503) { lastCode = 'busy'; lastStatus = 503; lastMsg = busyMsg; await sleep(1000); return 'next'; }
         if (status === 404) { lastCode = 'model'; lastStatus = 502; lastMsg = 'El modelo de IA configurado ya no existe. Avisa al administrador.'; return 'next'; }
         lastCode = 'upstream'; lastStatus = 502; lastMsg = 'La IA no ha podido responder.'; return 'retry-text';

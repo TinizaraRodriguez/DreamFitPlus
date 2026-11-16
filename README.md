@@ -10,6 +10,10 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 - **Metabolismo basal y nutrición**: en la bienvenida (y desde Perfil) se piden sexo, edad, altura, peso y nivel de actividad. Con la fórmula Mifflin-St Jeor se calcula el metabolismo basal, el mantenimiento y las calorías y macros según el objetivo (con mínimos de seguridad y sin déficit para menores de 18). Se usan en Perfil, en Recetas (reparto por comida y alimentos recomendados), en la meta de agua de Hoy y en el generador con IA.
 - **Seguimiento de comidas**: cada comida puede llevar kcal y proteína aproximadas (Ligera / Normal / Fuerte según tu objetivo, o números a mano). Hoy muestra las barras del día frente a tu objetivo con mensajes sin culpa; es opcional y se puede desactivar. Los totales diarios se guardan para el resumen y el ajuste del plan.
 - **Peso y medidas (Progreso)**: historial de peso (uno por día, con editar y borrar), gráfica con rangos y tendencia semanal; el peso más reciente actualiza tus calorías, macros y agua. Las medidas de cintura y cadera también se pueden corregir.
+- **Resumen semanal (Progreso)**: de lunes a domingo, qué entrenos planificaste y cuáles hiciste, km, cambio de peso, calorías y proteína de media, agua y una frase de ánimo. Se puede ver la semana actual o la anterior.
+- **Revisión del plan (Hoy)**: cada 2 semanas la app mira tu tendencia de peso y cuánto cumples y *propone* cambios (±100–150 kcal al día, subir de nivel, más o menos días de fuerza). Tú aceptas o no; si aceptas un cambio de días o de nivel se rehace la semana. Solo usa datos guardados: sin IA ni red.
+- **Pesos iniciales a tu medida**: el peso recomendado para cada máquina parte de tu peso corporal y sexo (con topes), y aprende de lo que vas guardando.
+- **Modo oscuro (Perfil → Apariencia)**: Sistema, Claro u Oscuro. Se guarda solo en el dispositivo y se aplica antes de pintar, sin parpadeo.
 - **Modo entreno**: en el Entreno de fuerza, «Empezar entrenamiento» abre una pantalla guiada: un ejercicio cada vez, una fila por serie (peso y repeticiones), temporizador de descanso (con ±15 s, aviso sonoro y vibración) y la pantalla se mantiene encendida. Al completar cada ejercicio se guarda con sus series y la app propone el peso de la próxima vez.
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
 - **Calendario**: plan semanal editable con botón de guardar, vista compacta y usable en móvil, y cambios puntuales por día.
@@ -44,6 +48,8 @@ js/
   recipes.js          Pestaña Recetas
   calendar.js         Pestaña Calendario
   weight.js          Historial de peso, tendencia y gráfica (Progreso)
+  summary.js         Resumen semanal y revisión automática del plan
+  theme.js           Tema claro / oscuro (se carga en <head>)
   tracking.js        Seguimiento de calorías y proteína del día (hoja de comida, barras en Hoy)
   nutrition.js        Metabolismo basal, calorías, macros, agua y tarjeta de nutrición
   plan.js             Plantillas de plan: objetivo + nivel + días + lugar -> semana, rutinas y series
@@ -122,8 +128,8 @@ Es un sitio estático: sirve cualquier alojamiento. Recomendado: **Cloudflare Pa
 
 **Cloudflare** (pasos; los nombres de los menús pueden cambiar). Hoy el asistente crea un *Worker* con archivos estáticos, y el repositorio ya trae el `wrangler.jsonc` que necesita:
 1. En <https://dash.cloudflare.com> → **Workers & Pages** → **Create application** → importa el repositorio de GitHub (puede ser privado).
-2. **Project name:** `dreamfitplus` (el mismo que el `name` de `wrangler.jsonc`; si usas otro, cámbialo también ahí). **Build command:** `npm run build`. **Deploy command:** `npx wrangler deploy` (el que viene por defecto). Rama de producción `main`.
-3. Pulsa **Deploy**. Te da una dirección tipo `https://dreamfitplus.tu-subdominio.workers.dev` (o `.pages.dev` si usas Pages clásico, con directorio de salida `dist`).
+2. **Project name:** `dreamfit` (el mismo que el `name` de `wrangler.jsonc`; si usas otro, cámbialo también ahí). **Build command:** `npm run build`. **Deploy command:** `npx wrangler deploy` (el que viene por defecto). Rama de producción `main`.
+3. Pulsa **Deploy**. Te da una dirección tipo `https://dreamfit.tu-subdominio.workers.dev` (o `.pages.dev` si usas Pages clásico, con directorio de salida `dist`).
 4. Añade esa dirección en:
    - Supabase → Authentication → URL Configuration: **Site URL** y **Redirect URLs**.
    - El secreto `ALLOWED_ORIGIN` de la función de IA (varias direcciones separadas por comas).
@@ -147,6 +153,7 @@ Consejo: en los ajustes de compilación puedes desactivar **Preview builds** si 
 
 - La sincronización sobrescribe cada bloque de datos entero (por ejemplo, "medidas"). Si editas lo mismo en dos dispositivos a la vez, gana el último en sincronizar.
 - Tailwind se carga por CDN, por lo que la primera visita necesita conexión.
+- El modo oscuro reasigna las clases de Tailwind en `styles.css` (bloque «MODO OSCURO»): si añades colores nuevos, añade también su versión oscura ahí.
 
 ## Próximos pasos
 
