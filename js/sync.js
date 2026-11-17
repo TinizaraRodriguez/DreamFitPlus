@@ -42,8 +42,14 @@ const Sync = {
         this.timer = setTimeout(() => this.hasPending() ? this.flush() : this.pull().then(r => { if (r.changed && typeof refreshFromRemote === 'function') refreshFromRemote(); }), wait);
     },
 
-    async flush() { // envía lo pendiente en una sola petición
-        if (!this.enabled || this.flushing || !this.hasPending()) return;
+    flush() { // envía lo pendiente en una sola petición. Si ya hay un envío en curso, espera a que acabe (y repite una vez si quedó algo)
+        if (!this.enabled) return Promise.resolve();
+        if (this.flushP) return this.flushP.then(() => (this.hasPending() && !this.flushP ? this.flush() : undefined));
+        if (!this.hasPending()) return Promise.resolve();
+        this.flushP = this._flush().finally(() => { this.flushP = null; });
+        return this.flushP;
+    },
+    async _flush() {
         this.flushing = true; clearTimeout(this.timer);
         const snap = {}; Object.keys(this.dirty).forEach(k => { snap[k] = DB.getItem(k); });
         try {

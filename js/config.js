@@ -8,5 +8,8 @@ window.DREAMFIT_CONFIG = {
     // Pon true SOLO después de activar Google en Supabase (ver LEEME-CONFIGURAR.md, apartado «Entrar con Google»).
     GOOGLE_LOGIN: true,
     // Pon true SOLO después de desplegar la función «generate-recipe» y crear la tabla de 03-ia.sql (ver LEEME-CONFIGURAR.md).
-    AI_RECIPES: true
+    AI_RECIPES: true,
+    // Política de privacidad: quién es el responsable y cómo contactarle (obligatorio si otras personas usan la app).
+    PRIVACY_CONTROLLER: '',
+    PRIVACY_EMAIL: ''
 };

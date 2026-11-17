@@ -201,7 +201,7 @@ const AuthUI = {
                 <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
                 Continuar con Google
             </button>
-            ${registering ? '<p class="text-[11px] text-slate-500 text-center">Al continuar aceptas que tus datos de entreno, comidas y medidas se guarden en la nube de esta app. Puedes borrarlos cuando quieras desde tu perfil.</p>' : ''}
+            ${registering ? '<p class="text-[11px] text-slate-500 text-center">Después te pediremos que aceptes la <button type="button" onclick="openPrivacy()" class="underline text-emerald-700 font-semibold cursor-pointer">política de privacidad</button> y el guardado de tus datos en la nube.</p>' : ''}
             <div class="flex items-center gap-2 text-[11px] text-slate-400" aria-hidden="true"><span class="flex-1 h-px bg-slate-200"></span>o con tu email<span class="flex-1 h-px bg-slate-200"></span></div>
         </div>`;
     },
@@ -226,7 +226,8 @@ const AuthUI = {
                 ${this.password('password', 'Contraseña', 'current-password')}
                 ${this.err}${this.primary('Entrar')}
             </form>
-            <div class="flex justify-between items-center">${this.link("AuthUI.show('forgot')", '¿Olvidaste tu contraseña?')}${this.link("AuthUI.show('register')", 'Crear cuenta')}</div>`;
+            <div class="flex justify-between items-center">${this.link("AuthUI.show('forgot')", '¿Olvidaste tu contraseña?')}${this.link("AuthUI.show('register')", 'Crear cuenta')}</div>
+            <div class="text-center">${this.link('openPrivacy()', 'Política de privacidad')}</div>`;
         },
         register() {
             return `<h2 class="font-bold text-base text-slate-900">Crea tu cuenta</h2>
@@ -235,7 +236,7 @@ const AuthUI = {
                 ${this.field('name', 'Nombre', 'text', 'autocomplete="given-name" maxlength="40" required')}
                 ${this.field('email', 'Email', 'email', 'autocomplete="email" inputmode="email" required')}
                 ${this.password('password', 'Contraseña', 'new-password', `<p class="text-[11px] text-slate-500 mt-1">Mínimo ${MIN_PASSWORD} caracteres.</p>`)}
-                <label class="flex items-start gap-2 text-[11px] text-slate-600"><input type="checkbox" id="consent" name="consent" class="mt-0.5 w-4 h-4"><span>Acepto que mis datos de entreno, comidas y medidas se guarden en la nube de esta app. Puedo borrarlos cuando quiera desde tu perfil.</span></label>
+                <label class="flex items-start gap-2 text-[11px] text-slate-600"><input type="checkbox" id="consent" name="consent" class="mt-0.5 w-4 h-4"><span>He leído la <button type="button" onclick="openPrivacy()" class="underline text-emerald-700 font-semibold cursor-pointer">política de privacidad</button> y acepto que mis datos de salud y hábitos (peso, medidas, entrenos, comidas) se guarden en la nube de esta app. Puedo borrarlos cuando quiera desde mi perfil.</span></label>
                 ${this.err}${this.primary('Crear cuenta')}
             </form>
             <div class="text-center">${this.link("AuthUI.show('login')", '¿Ya tienes cuenta? Entrar')}</div>`;
@@ -260,6 +261,14 @@ const AuthUI = {
                 ${this.password('password', 'Nueva contraseña', 'new-password', `<p class="text-[11px] text-slate-500 mt-1">Mínimo ${MIN_PASSWORD} caracteres.</p>`)}
                 ${this.err}${this.primary('Guardar contraseña')}
             </form>`;
+        },
+        consent() {
+            return `<h2 class="font-bold text-base text-slate-900">Tu privacidad</h2>
+            <p class="text-xs text-slate-600">Para guardar tu cuenta y tus datos de salud y hábitos (peso, medidas, entrenos, comidas) en la nube necesitamos tu consentimiento. Solo los ves tú, no se venden ni se ceden, y puedes descargarlos o borrarlos cuando quieras desde tu perfil.</p>
+            <div class="text-center">${this.link('openPrivacy()', 'Leer la política de privacidad')}</div>
+            <button onclick="acceptConsent()" class="auth-primary w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700">Acepto y continuar</button>
+            <button onclick="declineConsent()" class="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-sm cursor-pointer">No acepto (cerrar sesión)</button>
+            <div class="text-center">${this.link('deleteAccount()', 'Prefiero eliminar mi cuenta')}</div>`;
         },
         import() {
             return `<h2 class="font-bold text-base text-slate-900">Datos en este dispositivo</h2>
@@ -291,6 +300,7 @@ const AuthUI = {
             else if (view === 'register') {
                 const r = await Auth.signUp({ name, email, password });
                 if (r.needsConfirm) return this.show('check-email', { email });
+                this.consentGiven = true; // marcó la casilla: se guarda en cuanto haya espacio de datos
                 Auth.user = r.user; await afterLogin();
             } else if (view === 'forgot') {
                 const r = await Auth.sendReset(email);

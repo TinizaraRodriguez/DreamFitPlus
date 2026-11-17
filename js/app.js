@@ -18,7 +18,7 @@ function switchTab(tabName) {
     if (tabName === 'hoy') renderToday();
     if (tabName === 'entreno') renderEntrenoTab();
     if (tabName === 'progreso') renderProgress();
-    if (tabName === 'perfil') { renderAccount(); renderGoalCard(); renderThemeCard(); }
+    if (tabName === 'perfil') { renderAccount(); renderGoalCard(); renderThemeCard(); renderPrivacyCard(); }
     const hp = document.getElementById('hdr-perfil');
     if (hp) { if (tabName === 'perfil') hp.setAttribute('aria-current', 'page'); else hp.removeAttribute('aria-current'); }
     window.scrollTo(0, 0);
@@ -132,13 +132,18 @@ async function afterLogin() { // ya hay sesión: elegir su espacio de datos, tra
         const first = await Promise.race([p, new Promise(r => setTimeout(() => r(null), 5000))]);
         if (first === null) p.then(r => { if (r.changed && appStarted) refreshFromRemote(); }); // red lenta: seguimos con la copia local
     }
+    if (AuthUI.consentGiven) { recordConsent(); AuthUI.consentGiven = false; } // lo aceptó marcando la casilla al registrarse
+    if (!consentOk()) return AuthUI.show('consent'); // cuentas nuevas de Google y cuentas anteriores a la política
+    startAfterConsent();
+}
+function startAfterConsent() {
     const hasOld = DB.guestKeys().length > 0 && !DB.getItem('dreamfit_import_done');
     if (hasOld) AuthUI.show('import'); else startApp();
 }
 
 async function boot() {
     Views.mount(); // pinta pestañas, cabecera, barra y hojas antes de cualquier otra cosa
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('ui-dialog')) { closeSosModal(); closeMealModal(); if (ob) skipOnboarding(); else if (wk) wkExit(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('ui-dialog')) { if (privacyOpen()) { closePrivacy(); return; } closeSosModal(); closeMealModal(); if (ob) skipOnboarding(); else if (wk) wkExit(); } });
     try { await Auth.init(); }
     catch (e) { AuthUI.show('error', { msg: 'No se pudo conectar con el servicio de cuentas. ' + authMsg(e) }); return; }
     Auth.booted = true;
