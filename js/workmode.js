@@ -8,11 +8,11 @@ const wkFmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 const wkSoundOn = () => DB.getItem('dreamfit_rest_sound') !== '0';
 const wkNum = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : NaN; };
 
-function startWorkout() {
+function startWorkout(at) { // at = ejercicio concreto de la lista; sin él, el primero pendiente
     if (wk) return;
     const machines = getDayMachines(getTodayName()), sc = getScheme(), hist = getStrength(), today = getTodayKey();
     const done = machines.map(m => (hist[m.name] || [])[0]?.date === today), range = wkRange(sc.reps);
-    wk = { machines, sc, range, done, idx: Math.max(0, done.indexOf(false)), sets: machines.map(m => { const w = suggestWeight(m).w; return Array.from({ length: sc.sets }, () => ({ w, reps: range.max, ok: false })); }),
+    wk = { machines, sc, range, done, idx: Number.isInteger(at) && at >= 0 && at < machines.length ? at : Math.max(0, done.indexOf(false)), sets: machines.map(m => { const w = suggestWeight(m).w; return Array.from({ length: sc.sets }, () => ({ w, reps: range.max, ok: false })); }),
         summary: {}, restEnd: 0, restTotal: 0, alerted: true, timer: null, prev: document.activeElement, ac: null, lock: null };
     document.getElementById('wk-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -167,10 +167,10 @@ function renderWorkout(focus) {
                 <h3 class="font-bold text-xl text-slate-900 leading-tight">${escapeHtml(m.name)}</h3>
                 <p class="text-xs text-slate-600"><b>${sc.sets} series × ${sc.reps} repeticiones</b> · descanso ${sc.restLabel}</p>
             </div>
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 space-y-2.5"><h4 class="text-xs font-bold text-slate-900">Cómo se hace</h4><p class="text-xs text-slate-600">${escapeHtml(m.tech)}</p><a href="${escapeHtml(m.videoUrl)}" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 font-bold text-xs py-2.5 rounded-xl"><i class="fa-solid fa-play" aria-hidden="true"></i> Ver vídeo del ejercicio</a></div>
             ${isDone ? '' : `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>`}
             <div class="space-y-2" role="group" aria-label="Series">${rows}</div>
-            ${summary}
-            <details class="text-xs text-slate-600 bg-white border border-slate-100 rounded-xl p-3"><summary class="cursor-pointer font-semibold text-slate-700">Técnica y vídeo</summary><p class="mt-2"><b>Técnica:</b> ${escapeHtml(m.tech)}</p><a href="${escapeHtml(m.videoUrl)}" target="_blank" rel="noopener" class="inline-block mt-2 text-emerald-700 font-bold underline">▶ Ver vídeo</a></details>`;
+            ${summary}`;
     }
     const foot = all ? '' : `
         <div class="px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-slate-200 space-y-2">

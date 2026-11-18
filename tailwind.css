@@ -558,9 +558,6 @@
   .list-disc {
     list-style-type: disc;
   }
-  .list-none {
-    list-style-type: none;
-  }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
@@ -721,6 +718,10 @@
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
+  }
+  .border-0 {
+    border-style: var(--tw-border-style);
+    border-width: 0px;
   }
   .border-2 {
     border-style: var(--tw-border-style);
@@ -1087,9 +1088,6 @@
   .pb-3 {
     padding-bottom: calc(var(--spacing) * 3);
   }
-  .pb-4 {
-    padding-bottom: calc(var(--spacing) * 4);
-  }
   .pb-24 {
     padding-bottom: calc(var(--spacing) * 24);
   }
@@ -1406,11 +1404,6 @@
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
-  .transition-transform {
-    transition-property: transform, translate, scale, rotate;
-    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
-    transition-duration: var(--tw-duration, var(--default-transition-duration));
-  }
   .duration-500 {
     --tw-duration: 500ms;
     transition-duration: 500ms;
@@ -1418,9 +1411,6 @@
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
-  }
-  .group-open\:rotate-90:is(:where(.group):is([open], :popover-open, :open) *) {
-    rotate: 90deg;
   }
   .last\:border-0:last-child {
     border-style: var(--tw-border-style);
@@ -1531,9 +1521,6 @@
     .sm\:p-4 {
       padding: calc(var(--spacing) * 4);
     }
-  }
-  .\[\&\:\:-webkit-details-marker\]\:hidden::-webkit-details-marker {
-    display: none;
   }
 }
 @property --tw-translate-x {

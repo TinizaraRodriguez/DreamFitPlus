@@ -120,34 +120,18 @@ function strengthPanel() {
     const hist = getStrength(), today = getTodayKey();
     const isDone = m => (hist[m.name] || [])[0]?.date === today;
     const pending = machines.filter(m => !isDone(m)).length, doneN = machines.length - pending;
+    const cta = pending
+        ? `<button onclick="startWorkout()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700 flex items-center justify-center gap-2"><i class="fa-solid fa-play" aria-hidden="true"></i> ${pending < machines.length ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button><p class="text-[10px] text-slate-400 text-center">Serie a serie, con vídeo, técnica y temporizador de descanso.</p>`
+        : doneBanner('¡Rutina completa! Descansa y bebe agua 💧');
     const header = card(`<div class="flex justify-between items-center gap-2"><div><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><p class="text-[11px] text-slate-500">${getScheme().label} · descanso ${getScheme().restLabel}${getProfile() ? ' · ' + GOALS[eff().goal].label : ''}</p></div><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full whitespace-nowrap">${doneN}/${machines.length}</span></div>
-        <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:${machines.length ? doneN / machines.length * 100 : 0}%"></div></div>
-        ${pending ? `<button onclick="startWorkout()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700 flex items-center justify-center gap-2"><i class="fa-solid fa-play" aria-hidden="true"></i> ${pending < machines.length ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button><p class="text-[10px] text-slate-400 text-center">Modo guiado, serie a serie. O abre un ejercicio de la lista y anótalo a mano.</p>` : ''}`);
-    const firstPending = machines.findIndex(m => !isDone(m));
+        <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:${machines.length ? doneN / machines.length * 100 : 0}%"></div></div>${cta}`);
     const rows = machines.map((m, i) => {
-        const sug = suggestWeight(m), done = isDone(m);
+        const done = isDone(m), sug = suggestWeight(m);
+        const icon = done ? '<i class="fa-solid fa-circle-check text-emerald-500" aria-hidden="true"></i>' : '<span class="w-4 h-4 rounded-full border-2 border-slate-300 inline-block" aria-hidden="true"></span>';
         const right = done ? `<span class="text-emerald-700 font-bold">${fmtW(hist[m.name][0].weight)} kg</span>` : `<span class="text-slate-400">${fmtW(sug.w)} kg</span>`;
-        const icon = done ? '<i class="fa-solid fa-circle-check text-emerald-500" aria-hidden="true"></i>' : `<span class="w-4 h-4 rounded-full border-2 border-slate-300 inline-block" aria-hidden="true"></span>`;
-        const body = done
-            ? doneBanner(`Guardado hoy: ${fmtW(hist[m.name][0].weight)} kg. Próxima vez: ${fmtW(sug.w)} kg.`)
-            : `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>
-               <label for="sw-${i}" class="text-xs font-semibold text-slate-500">Peso usado hoy (kg)</label>
-               <input type="number" inputmode="decimal" step="0.5" id="sw-${i}" value="${sug.w}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-               ${choices('sr-' + i, [['yes', `✅ Completé ${getScheme().label}`], ['mid', '😅 Casi'], ['no', '❌ No pude']])}
-               <button onclick="saveMachine(${i})" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700">Guardar ejercicio</button>`;
-        return `<details name="ex" class="group border-b border-slate-100 last:border-0" ${i === firstPending ? 'open' : ''}>
-            <summary class="flex items-center gap-3 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">${icon}<span class="flex-1 min-w-0 text-sm font-bold text-slate-900 truncate">${m.name}</span><span class="text-xs">${right}</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-300 transition-transform group-open:rotate-90" aria-hidden="true"></i></summary>
-            <div class="pb-4 space-y-2.5">
-                <p class="text-[11px] text-slate-600"><b>Técnica:</b> ${m.tech} <a href="${m.videoUrl}" target="_blank" rel="noopener" class="ml-1 text-emerald-700 font-semibold whitespace-nowrap">▶ Vídeo</a></p>
-                ${body}
-            </div></details>`;
+        return `<li><button onclick="startWorkout(${i})" class="w-full flex items-center gap-3 py-3 text-left cursor-pointer border-b border-slate-100 ${i === machines.length - 1 ? 'border-0' : ''}" aria-label="Abrir ${escapeHtml(m.name)} en el modo entreno">${icon}<span class="flex-1 min-w-0 text-sm font-semibold text-slate-800 truncate">${m.name}</span><span class="text-xs">${right}</span></button></li>`;
     }).join('');
-    return header + `<div class="bg-white px-5 rounded-2xl shadow-sm border border-slate-100">${rows}</div>`;
-}
-function saveMachine(i) {
-    const w = parseFloat(document.getElementById('sw-' + i).value), r = choiceVal('sr-' + i);
-    if (!w || !r) { showToast('Indica el peso y cómo te fue.'); return; }
-    commitMachine(i, w, r);
+    return header + `<ul class="bg-white px-5 rounded-2xl shadow-sm border border-slate-100">${rows}</ul>`;
 }
 // Guarda un ejercicio de fuerza de hoy (lo usan el formulario rápido y el modo entreno). `sets` = [{w, reps}] opcional.
 function commitMachine(i, w, r, sets = null) {
