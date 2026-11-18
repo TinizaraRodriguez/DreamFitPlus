@@ -175,6 +175,7 @@ function renderMenuCard() {
     if (menuState.busy) { el.innerHTML = head + `<p class="text-xs text-slate-500" role="status"><i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i> La IA está montando tu menú… puede tardar hasta un minuto.</p>`; return; }
     if (!menuState.picks) {
         el.innerHTML = head + `<p class="text-xs text-slate-500">Armo las 4 comidas del día para que cuadren con tu objetivo (<b>${fmtN(n.kcal)} kcal · ${n.protein} g de proteína · ${n.carbs} g de hidratos · ${n.fat} g de grasas</b>) y te preparo la lista de la compra con lo que te falte.</p>${err}
+            <button onclick="setRecSection('ideas')" class="w-full text-[11px] text-emerald-700 font-semibold underline cursor-pointer">¿Qué tienes en casa o qué no puedes comer? Indícalo en «Ideas»</button>
             ${aiOn ? `<button onclick="buildAiMenu()" class="w-full bg-amber-300 hover:bg-amber-200 text-slate-950 font-bold py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-2"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Armar mi menú con IA</button>` : ''}
             <button onclick="buildMenu(false)" class="w-full ${aiOn ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'} font-bold py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-2">${aiOn ? 'Menú básico (sin IA)' : '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Armar mi menú'}</button>
             ${aiOn ? '<p class="text-[10px] text-slate-400">La IA da más variedad, usa tus ingredientes y restricciones (campos de más abajo) y cuenta como 1 uso del límite diario. El básico no tiene límite.</p>' : '<p class="text-[10px] text-slate-400">Con una cuenta, aquí aparecerá también el menú con IA, con más variedad.</p>'}`;
@@ -208,6 +209,27 @@ function useMenuDish(meal) {
     sendToMeal(meal, v.title, { kcal: Math.round(v.m.kcal), protein: Math.round(v.m.p) });
 }
 
+// ---------- Secciones de la pestaña Recetas (una a la vez, para no abrumar) ----------
+const REC_SECTIONS = ['menu', 'ideas', 'compra', 'guardadas'];
+let recSection = 'menu';
+function setRecSection(id, scroll = true) {
+    if (!REC_SECTIONS.includes(id)) id = 'menu';
+    recSection = id;
+    document.querySelectorAll('[data-rsec]').forEach(el => el.classList.toggle('hidden', el.dataset.rsec !== id));
+    REC_SECTIONS.forEach(s => {
+        const b = document.getElementById('rec-t-' + s); if (!b) return;
+        const on = s === id;
+        b.classList.toggle('bg-white', on); b.classList.toggle('shadow-sm', on); b.classList.toggle('text-emerald-700', on); b.classList.toggle('text-slate-500', !on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function updateRecBadge() {
+    const b = document.getElementById('rec-badge'); if (!b) return;
+    const n = getShop().filter(x => !x.done).length;
+    b.textContent = n > 99 ? '99+' : n; b.classList.toggle('hidden', !n);
+}
+
 // ---------- Lista de la compra (guardada y sincronizada: dreamfit_shop) ----------
 // items: [{ id, n: nombre, q: cantidad (texto), c: sección, g: gramos totales (solo si viene del menú), key: alimento, done }]
 const getShop = () => { const s = safeParse('dreamfit_shop', []); return Array.isArray(s) ? s.filter(x => x && typeof x.n === 'string') : []; };
@@ -232,7 +254,7 @@ function menuToShopping() {
         const raw = (document.getElementById('user-ingredients') || { value: '' }).value, have = raw.trim() ? parseIngredients(raw).have : new Set();
         const items = aiMenuItems().filter(x => { const k = parseIngredients(x.n).have; return ![...k].some(y => have.has(y)); });
         saveShop([...getShop().filter(x => !x.key && !x.menu), ...items.map(x => ({ id: shopId(), n: x.n, q: x.q, c: x.c, menu: true, done: false }))]); renderShopCard();
-        showToast('Lista de la compra creada'); const c = document.getElementById('shop-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast('Lista de la compra creada'); setRecSection('compra');
         return;
     }
     const need = menuNeeds(); if (!Object.keys(need).length) return;
@@ -247,7 +269,7 @@ function menuToShopping() {
     });
     saveShop([...keep, ...added]); renderShopCard();
     showToast(skipped.length ? `Lista creada (sin lo que ya tienes: ${skipped.length})` : 'Lista de la compra creada');
-    const c = document.getElementById('shop-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setRecSection('compra');
 }
 function addAiToShopping(i) { // ingredientes de una receta de la IA
     const r = aiState.items[i]; if (!r) return;
@@ -276,6 +298,7 @@ async function copyShop() {
     catch { window.prompt('Copia tu lista:', t); }
 }
 function renderShopCard() {
+    updateRecBadge();
     const el = document.getElementById('shop-card'); if (!el) return;
     const l = getShop(), pend = l.filter(x => !x.done).length;
     const row = x => `<li class="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0"><label class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"><input type="checkbox" ${x.done ? 'checked' : ''} onchange="toggleShop('${x.id}')" class="w-4 h-4 accent-emerald-600"><span class="text-xs ${x.done ? 'line-through text-slate-400' : 'text-slate-700'} truncate">${escapeHtml(x.n)}${x.q ? ` <span class="text-slate-400">· ${escapeHtml(x.q)}</span>` : ''}</span></label><button onclick="removeShop('${x.id}')" class="text-slate-300 hover:text-red-500 text-xs px-1 cursor-pointer" aria-label="Quitar ${escapeHtml(x.n)}"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></li>`;

@@ -5,11 +5,25 @@ Views.addTab({
     icon: 'fa-utensils',
     nav: true,   // false = no aparece en la barra inferior
     html: `
+<div id="rec-nav" role="tablist" aria-label="Secciones de recetas" class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl text-[11px] font-bold">
+    <button role="tab" id="rec-t-menu" onclick="setRecSection('menu')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-utensils block text-sm mb-0.5" aria-hidden="true"></i>Menú</button>
+    <button role="tab" id="rec-t-ideas" onclick="setRecSection('ideas')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-wand-magic-sparkles block text-sm mb-0.5" aria-hidden="true"></i>Ideas</button>
+    <button role="tab" id="rec-t-compra" onclick="setRecSection('compra')" class="py-2 rounded-xl cursor-pointer relative"><i class="fa-solid fa-cart-shopping block text-sm mb-0.5" aria-hidden="true"></i>Compra<span id="rec-badge" class="hidden absolute top-0.5 right-2 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-emerald-600 text-white text-[10px] leading-[1.1rem]"></span></button>
+    <button role="tab" id="rec-t-guardadas" onclick="setRecSection('guardadas')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-bowl-food block text-sm mb-0.5" aria-hidden="true"></i>Guardadas</button>
+</div>
+
+<div data-rsec="menu" class="space-y-6">
 <div id="nutri-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
 
 <div id="menu-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
 
+</div>
+
+<div data-rsec="compra" class="space-y-6 hidden">
 <div id="shop-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
+</div>
+
+<div data-rsec="ideas" class="space-y-6 hidden">
 
 <div class="bg-gradient-to-br from-teal-800 to-emerald-900 text-white p-5 rounded-2xl shadow-md space-y-4">
     <div class="flex items-center gap-2">
@@ -61,6 +75,9 @@ Views.addTab({
     <div id="custom-recipe-result" class="hidden bg-white text-slate-800 p-4 rounded-xl space-y-3 mt-3"></div>
 </div>
 
+</div>
+
+<div data-rsec="guardadas" class="space-y-6 hidden">
 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
     <h3 class="font-bold text-sm text-slate-900 flex items-center justify-between">
         <span><i class="fa-solid fa-plus text-emerald-600 mr-1"></i> Añadir Receta al Recetario</span>
@@ -88,6 +105,7 @@ Views.addTab({
         <span class="text-xs text-slate-500 font-normal" id="recipe-count-badge">0 recetas</span>
     </h3>
     <div id="recipes-catalog-list" class="space-y-3"></div>
+</div>
 </div>
 `
 });
