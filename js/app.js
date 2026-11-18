@@ -129,8 +129,14 @@ async function afterLogin() { // ya hay sesión: elegir su espacio de datos, tra
         AuthUI.show('loading');
         Sync.start(SupabaseBackend.client, Auth.user.id);
         const p = Sync.pull();
-        const first = await Promise.race([p, new Promise(r => setTimeout(() => r(null), 5000))]);
-        if (first === null) p.then(r => { if (r.changed && appStarted) refreshFromRemote(); }); // red lenta: seguimos con la copia local
+        // Dispositivo conocido (ya hay datos locales): se arranca al instante con la copia local y lo de la nube se mezcla al llegar.
+        // Dispositivo nuevo: se espera a la nube (máx. 4 s) para no enseñar un plan vacío.
+        const known = DB.getItem('dreamfit_profile') !== null;
+        const first = known ? null : await Promise.race([p, new Promise(r => setTimeout(() => r(null), 4000))]);
+        if (first === null) p.then(r => {
+            if (r.changed && appStarted) refreshFromRemote();
+            if (AuthUI.view === 'consent' && consentOk()) startAfterConsent(); // el consentimiento ya estaba dado en otro dispositivo
+        });
     }
     if (AuthUI.consentGiven) { recordConsent(); AuthUI.consentGiven = false; } // lo aceptó marcando la casilla al registrarse
     if (!consentOk()) return AuthUI.show('consent'); // cuentas nuevas de Google y cuentas anteriores a la política

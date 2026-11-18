@@ -13,6 +13,7 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 - **Resumen semanal (Progreso)**: de lunes a domingo, qué entrenos planificaste y cuáles hiciste, km, cambio de peso, calorías y proteína de media, agua y una frase de ánimo. Se puede ver la semana actual o la anterior.
 - **Revisión del plan (Hoy)**: cada 2 semanas la app mira tu tendencia de peso y cuánto cumples y *propone* cambios (±100–150 kcal al día, subir de nivel, más o menos días de fuerza). Tú aceptas o no; si aceptas un cambio de días o de nivel se rehace la semana. Solo usa datos guardados: sin IA ni red.
 - **Pesos iniciales a tu medida**: el peso recomendado para cada máquina parte de tu peso corporal y sexo (con topes), y aprende de lo que vas guardando.
+- **Privacidad y tus datos (Perfil)**: política de privacidad (en la app y como página pública `privacidad.html`), consentimiento explícito al crear la cuenta (y pantalla de consentimiento para cuentas de Google o anteriores a la política), «Descargar mis datos» (ZIP con tablas CSV para Excel y una copia completa en JSON) y, en modo local, «Borrar los datos de este dispositivo».
 - **Modo oscuro (Perfil → Apariencia)**: Sistema, Claro u Oscuro. Se guarda solo en el dispositivo y se aplica antes de pintar, sin parpadeo.
 - **Modo entreno**: en el Entreno de fuerza, «Empezar entrenamiento» abre una pantalla guiada: un ejercicio cada vez, una fila por serie (peso y repeticiones), temporizador de descanso (con ±15 s, aviso sonoro y vibración) y la pantalla se mantiene encendida. Al completar cada ejercicio se guarda con sus series y la app propone el peso de la próxima vez.
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
@@ -26,7 +27,8 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 
 ```
 index.html            Esqueleto: huecos vacíos + carga de scripts (50 líneas)
-styles.css            Estilos propios (el resto usa Tailwind por CDN)
+styles.css            Estilos propios
+tailwind.css         Tailwind ya generado (estático, sin CDN). Regenerar: ver «Carga rápida»
 _headers              Cabeceras de seguridad y caché (Cloudflare Pages / Netlify)
 package.json          Scripts: npm run dev (servidor local) y npm run build (carpeta dist/)
 wrangler.jsonc         Configuración de Cloudflare (publica dist/)
@@ -50,6 +52,8 @@ js/
   weight.js          Historial de peso, tendencia y gráfica (Progreso)
   summary.js         Resumen semanal y revisión automática del plan
   theme.js           Tema claro / oscuro (se carga en <head>)
+  privacy.js         Texto de la política de privacidad y su hoja (también lo usa privacidad.html)
+  export.js          Descargar mis datos (ZIP/CSV), consentimiento y borrar datos locales
   tracking.js        Seguimiento de calorías y proteína del día (hoja de comida, barras en Hoy)
   nutrition.js        Metabolismo basal, calorías, macros, agua y tarjeta de nutrición
   plan.js             Plantillas de plan: objetivo + nivel + días + lugar -> semana, rutinas y series
@@ -147,12 +151,20 @@ Consejo: en los ajustes de compilación puedes desactivar **Preview builds** si 
 - La clave `publishable`/`anon` es pública por diseño y puede estar en el código. **Nunca** pongas la clave `secret` ni `service_role` en el repositorio ni en la app.
 - La tabla `user_data` tiene RLS: cada usuario solo puede leer y modificar sus propias filas; el acceso anónimo está revocado. Las claves y el tamaño de los valores están validados en la base de datos.
 - Al cerrar sesión se borra la copia local del dispositivo.
-- Se guardan datos de salud (peso, medidas): si invitas a otras personas, avísalas de que se almacenan en tu proyecto de Supabase.
+- Se guardan datos de salud (peso, medidas). Si otras personas usan la app, **rellena `PRIVACY_CONTROLLER` y `PRIVACY_EMAIL` en `js/config.js`** (quién es el responsable y cómo contactarle): salen en la política de privacidad. El texto de `js/privacy.js` describe lo que hace la app hoy (Supabase, Cloudflare, Google/Gemini opcional, librerías por CDN); es una plantilla honesta, no asesoramiento jurídico: revísala (y consulta a un profesional si vas a tener muchos usuarios) y, si cambia lo que haces con los datos, edítala y sube `CONSENT_VERSION` para volver a pedir el consentimiento a todos.
+- El consentimiento se guarda en la cuenta (`dreamfit_consent`: versión y fecha) y se sincroniza. Quien no acepta se queda fuera y sin datos en el dispositivo; puede eliminar su cuenta desde esa misma pantalla.
+- La preferencia de tema (claro/oscuro) se guarda solo en el dispositivo y no entra en la copia ni en la nube.
+
+## Carga rápida
+
+- `tailwind.css` es el CSS de Tailwind ya generado (antes se cargaba y compilaba el script entero en el navegador, lo más lento de la primera visita).
+- **Si añades clases nuevas de Tailwind** en el HTML/JS, regénralo: `TAILWIND_DIR=<ruta a node_modules/tailwindcss> node tools/make-tailwind.js` y sube el `tailwind.css` resultante.
+- En un dispositivo que ya conoce tus datos la app arranca al instante y la nube se mezcla en segundo plano; en uno nuevo espera como máximo 4 s.
 
 ## Limitaciones conocidas
 
 - La sincronización sobrescribe cada bloque de datos entero (por ejemplo, "medidas"). Si editas lo mismo en dos dispositivos a la vez, gana el último en sincronizar.
-- Tailwind se carga por CDN, por lo que la primera visita necesita conexión.
+- Los iconos (Font Awesome), las fuentes y supabase-js siguen viniendo de CDN: la primera visita necesita conexión.
 - El modo oscuro reasigna las clases de Tailwind en `styles.css` (bloque «MODO OSCURO»): si añades colores nuevos, añade también su versión oscura ahí.
 
 ## Próximos pasos

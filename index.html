@@ -6,7 +6,11 @@
     <meta name="theme-color" content="#059669">
     <meta name="description" content="Seguimiento de entrenos, agua y comidas.">
     <title>Mi Plan Fitness & Nutrición</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- CSS de Tailwind ya compilado (tools/make-tailwind.js): no hay que esperar a ningún script externo para pintar -->
+    <link rel="stylesheet" href="tailwind.css">
+    <!-- se descarga mientras arranca la app, para que iniciar sesión no espere a esta librería -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,12 +41,15 @@
     <script src="js/views/modals/meal.js"></script>
     <script src="js/views/modals/onboarding.js"></script>
     <script src="js/views/modals/workmode.js"></script>
+    <script src="js/views/modals/privacy.js"></script>
     <!-- Lógica -->
     <script src="js/config.js"></script>
+    <script src="js/privacy.js"></script>
     <script src="js/db.js"></script>
     <script src="js/sync.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/export.js"></script>
     <script src="js/recipe-engine.js"></script>
     <script src="js/recipes.js"></script>
     <script src="js/calendar.js"></script>

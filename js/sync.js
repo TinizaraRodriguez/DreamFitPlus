@@ -42,12 +42,16 @@ const Sync = {
         this.timer = setTimeout(() => this.hasPending() ? this.flush() : this.pull().then(r => { if (r.changed && typeof refreshFromRemote === 'function') refreshFromRemote(); }), wait);
     },
 
-    flush() { // envía lo pendiente en una sola petición. Si ya hay un envío en curso, espera a que acabe (y repite una vez si quedó algo)
-        if (!this.enabled) return Promise.resolve();
-        if (this.flushP) return this.flushP.then(() => (this.hasPending() && !this.flushP ? this.flush() : undefined));
-        if (!this.hasPending()) return Promise.resolve();
-        this.flushP = this._flush().finally(() => { this.flushP = null; });
-        return this.flushP;
+    async flush() { // envía lo pendiente. Si ya hay un envío en curso espera a que acabe y, si quedó algo, lo envía también (máx. 3 vueltas)
+        if (!this.enabled) return;
+        for (let round = 0; round < 3; round++) {
+            if (!this.flushP) {
+                if (!this.hasPending()) return;
+                this.flushP = this._flush().finally(() => { this.flushP = null; });
+            }
+            await this.flushP;
+            if (!this.hasPending() || this.retries > 0) return; // todo enviado, o falló (se reintentará solo)
+        }
     },
     async _flush() {
         this.flushing = true; clearTimeout(this.timer);

@@ -2,6 +2,7 @@
 // Un solo texto para la hoja de la app y para la página pública privacidad.html (así nunca se desincronizan).
 // Los datos del responsable salen de js/config.js (PRIVACY_CONTROLLER y PRIVACY_EMAIL).
 // IMPORTANTE: si cambia lo que hace la app con los datos de forma importante, actualiza este texto y sube CONSENT_VERSION
+// (a todo el mundo se le volverá a pedir el consentimiento).
 const CONSENT_VERSION = 1;
 const POLICY_DATE = '16 de noviembre de 2026';
 
