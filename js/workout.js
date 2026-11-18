@@ -119,19 +119,30 @@ function strengthPanel() {
     const machines = getDayMachines(getTodayName());
     const hist = getStrength(), today = getTodayKey();
     const isDone = m => (hist[m.name] || [])[0]?.date === today;
-    const pending = machines.filter(m => !isDone(m)).length;
-    const header = card(`<div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">${machines.filter(isDone).length}/${machines.length} ejercicios</span></div><p class="text-xs text-slate-700 font-semibold">${getScheme().label} · descanso ${getScheme().restLabel} entre series${getProfile() ? ' · ' + GOALS[eff().goal].label : ''}</p><p class="text-xs text-slate-500">Anota cómo te fue en cada ejercicio: la app ajusta el peso de la próxima vez.</p>${pending ? `<button onclick="startWorkout()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700 flex items-center justify-center gap-2"><i class="fa-solid fa-play" aria-hidden="true"></i> ${pending < machines.length ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button><p class="text-[10px] text-slate-400 text-center">Modo guiado: serie a serie, con temporizador de descanso. O guarda cada ejercicio a mano aquí abajo.</p>` : ''}`);
-    return header + machines.map((m, i) => {
-        const sug = suggestWeight(m);
-        const top = `<div class="flex justify-between items-start"><h4 class="font-bold text-sm text-slate-900">${m.name}</h4><a href="${m.videoUrl}" target="_blank" rel="noopener" class="text-[11px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md">▶ Vídeo</a></div><p class="text-[11px] text-slate-600"><b>Técnica:</b> ${m.tech}</p>`;
-        if (isDone(m)) return card(top + doneBanner(`Guardado hoy: ${hist[m.name][0].weight} kg. Próxima vez: ${sug.w} kg.`));
-        return card(top + `
-            <p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>
-            <label for="sw-${i}" class="text-xs font-semibold text-slate-500">Peso usado hoy (kg)</label>
-            <input type="number" inputmode="decimal" step="0.5" id="sw-${i}" value="${sug.w}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-            ${choices('sr-' + i, [['yes', `✅ Completé ${getScheme().label}`], ['mid', '😅 Casi'], ['no', '❌ No pude']])}
-            <button onclick="saveMachine(${i})" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700">Guardar máquina</button>`);
+    const pending = machines.filter(m => !isDone(m)).length, doneN = machines.length - pending;
+    const header = card(`<div class="flex justify-between items-center gap-2"><div><h3 class="font-bold text-sm text-slate-900">Rutina de hoy</h3><p class="text-[11px] text-slate-500">${getScheme().label} · descanso ${getScheme().restLabel}${getProfile() ? ' · ' + GOALS[eff().goal].label : ''}</p></div><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full whitespace-nowrap">${doneN}/${machines.length}</span></div>
+        <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:${machines.length ? doneN / machines.length * 100 : 0}%"></div></div>
+        ${pending ? `<button onclick="startWorkout()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-emerald-700 flex items-center justify-center gap-2"><i class="fa-solid fa-play" aria-hidden="true"></i> ${pending < machines.length ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button><p class="text-[10px] text-slate-400 text-center">Modo guiado, serie a serie. O abre un ejercicio de la lista y anótalo a mano.</p>` : ''}`);
+    const firstPending = machines.findIndex(m => !isDone(m));
+    const rows = machines.map((m, i) => {
+        const sug = suggestWeight(m), done = isDone(m);
+        const right = done ? `<span class="text-emerald-700 font-bold">${fmtW(hist[m.name][0].weight)} kg</span>` : `<span class="text-slate-400">${fmtW(sug.w)} kg</span>`;
+        const icon = done ? '<i class="fa-solid fa-circle-check text-emerald-500" aria-hidden="true"></i>' : `<span class="w-4 h-4 rounded-full border-2 border-slate-300 inline-block" aria-hidden="true"></span>`;
+        const body = done
+            ? doneBanner(`Guardado hoy: ${fmtW(hist[m.name][0].weight)} kg. Próxima vez: ${fmtW(sug.w)} kg.`)
+            : `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>
+               <label for="sw-${i}" class="text-xs font-semibold text-slate-500">Peso usado hoy (kg)</label>
+               <input type="number" inputmode="decimal" step="0.5" id="sw-${i}" value="${sug.w}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+               ${choices('sr-' + i, [['yes', `✅ Completé ${getScheme().label}`], ['mid', '😅 Casi'], ['no', '❌ No pude']])}
+               <button onclick="saveMachine(${i})" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700">Guardar ejercicio</button>`;
+        return `<details name="ex" class="group border-b border-slate-100 last:border-0" ${i === firstPending ? 'open' : ''}>
+            <summary class="flex items-center gap-3 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">${icon}<span class="flex-1 min-w-0 text-sm font-bold text-slate-900 truncate">${m.name}</span><span class="text-xs">${right}</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-300 transition-transform group-open:rotate-90" aria-hidden="true"></i></summary>
+            <div class="pb-4 space-y-2.5">
+                <p class="text-[11px] text-slate-600"><b>Técnica:</b> ${m.tech} <a href="${m.videoUrl}" target="_blank" rel="noopener" class="ml-1 text-emerald-700 font-semibold whitespace-nowrap">▶ Vídeo</a></p>
+                ${body}
+            </div></details>`;
     }).join('');
+    return header + `<div class="bg-white px-5 rounded-2xl shadow-sm border border-slate-100">${rows}</div>`;
 }
 function saveMachine(i) {
     const w = parseFloat(document.getElementById('sw-' + i).value), r = choiceVal('sr-' + i);
@@ -174,15 +185,14 @@ function runPanel() {
         <div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-900">${done ? 'Próxima sesión' : 'Tu sesión de hoy'}</h3><span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Nivel ${lvl + 1} de ${RUN_LEVELS.length}</span></div>
         <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center"><p class="font-bold text-emerald-900 text-sm">${runDesc(L)}</p><p class="text-[11px] text-emerald-700">≈ ${(L.run + L.walk) * L.reps} minutos en total</p></div>
         <div class="h-2 bg-slate-100 rounded-full"><div class="h-2 bg-emerald-500 rounded-full" style="width:${(lvl + 1) / RUN_LEVELS.length * 100}%"></div></div>
-        <p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${why}</p>
-        <p class="text-[11px] text-slate-500">Regla de oro: debes poder mantener una conversación sin jadear.</p>`);
+        <p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${why} Debes poder mantener una conversación sin jadear.</p>`);
     const form = done ? card(doneBanner('Sesión de hoy guardada. ¡Buen trabajo!')) : card(`
         <h3 class="font-bold text-sm text-slate-900">¿Cómo te fue?</h3>
         ${choices('run-feel', FEEL)}
         <label for="run-km" class="text-xs font-semibold text-slate-500">Distancia (km, opcional)</label>
         <input type="number" inputmode="decimal" step="0.1" id="run-km" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
         <button onclick="saveRun(${lvl})" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700">Guardar sesión</button>`);
-    const recent = runs.length ? card(`<h3 class="font-bold text-sm text-slate-900">Últimas carreras</h3><div class="text-xs text-slate-600 space-y-1.5">${runs.slice(0, 4).map(r => `<div class="p-2 bg-slate-50 rounded-lg">${r.date} · Nivel ${r.level + 1} · ${FEEL_TXT[r.feeling]}${r.km ? ' · ' + r.km + ' km' : ''}</div>`).join('')}</div>`) : '';
+    const recent = runs.length ? card(`<details><summary class="cursor-pointer font-bold text-sm text-slate-900">Últimas carreras</summary><div class="mt-2 text-xs text-slate-600 space-y-1.5">${runs.slice(0, 4).map(r => `<div class="p-2 bg-slate-50 rounded-lg">${r.date} · Nivel ${r.level + 1} · ${FEEL_TXT[r.feeling]}${r.km ? ' · ' + r.km + ' km' : ''}</div>`).join('')}</div></details>`) : '';
     return plan + form + recent;
 }
 function saveRun(lvl) {
@@ -213,7 +223,7 @@ function classPanel() {
         <label for="cls-notes" class="text-xs font-semibold text-slate-500">Notas (opcional)</label>
         <input type="text" id="cls-notes" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
         <button onclick="saveClass()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer hover:bg-emerald-700">Guardar sesión</button>`);
-    const recent = mine.length ? card(`<h3 class="font-bold text-sm text-slate-900">Últimas sesiones</h3><div class="text-xs text-slate-600 space-y-1.5">${mine.slice(0, 4).map(s => `<div class="p-2 bg-slate-50 rounded-lg">${s.date} · ${s.minutes} min · ${FEEL_TXT[s.feeling]}${s.notes ? ' · ' + escapeHtml(s.notes) : ''}</div>`).join('')}</div>`) : '';
+    const recent = mine.length ? card(`<details><summary class="cursor-pointer font-bold text-sm text-slate-900">Últimas sesiones</summary><div class="mt-2 text-xs text-slate-600 space-y-1.5">${mine.slice(0, 4).map(s => `<div class="p-2 bg-slate-50 rounded-lg">${s.date} · ${s.minutes} min · ${FEEL_TXT[s.feeling]}${s.notes ? ' · ' + escapeHtml(s.notes) : ''}</div>`).join('')}</div></details>`) : '';
     return info + form + recent;
 }
 function saveClass() {
@@ -245,3 +255,4 @@ function restPanel() {
         <p class="text-xs text-slate-600">Duerme 7-8 horas, mantén la hidratación y, si te apetece, da un paseo suave. El músculo crece mientras descansas.</p>
         <button onclick="document.querySelector('#tab-entreno details').open = true" class="text-xs text-emerald-700 font-semibold underline cursor-pointer">¿Has entrenado igualmente? Cambia la actividad de hoy</button>`);
 }
+const fmtW = n => String(Math.round(n * 100) / 100).replace('.', ',');
