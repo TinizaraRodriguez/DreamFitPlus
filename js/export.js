@@ -55,6 +55,7 @@ function collectExport() {
         keys.map(k => { const d = days[k] || {}; return [k, log[k] ? 'sí' : 'no', N(d.water), N(d.meals), N(d.kcal), N(d.protein), N(d.sos)]; }));
     add('historial.csv', ['fecha', 'texto'], getHistory().slice().reverse().map(h => [h.date, T(h.text)]));
     add('recetas.csv', ['titulo', 'descripcion', 'momento'], (DB.getItem('dreamfit_custom_recipes') ? safeParse('dreamfit_custom_recipes', []) : []).map(r => [T(r.title), T(r.desc), T(r.target || '')]));
+    add('compra.csv', ['producto', 'cantidad', 'comprado'], safeParse('dreamfit_shop', []).filter(i => i && i.n).map(i => [T(i.n), T(i.q || ''), i.done ? 'sí' : 'no']));
     const all = {}; DB.keys().forEach(k => { all[k] = DB.getItem(k); });
     files.push({ name: 'datos-completos.json', data: JSON.stringify({ app: 'Mi Plan Fitness', exportado: new Date().toISOString(), datos: all }, null, 1) });
     files.unshift({ name: 'LEEME.txt', data: [

@@ -57,7 +57,6 @@ function updateAiUI() {
 async function generateAiRecipe(more = false) {
     if (aiState.busy) return;
     const raw = document.getElementById('user-ingredients').value.trim();
-    if (!raw) { showToast('Escribe al menos 2 o 3 ingredientes.'); return; }
     const goal = document.getElementById('user-goal').value, flavor = document.getElementById('user-flavor').value;
     const restrictions = (document.getElementById('user-restrictions') || { value: '' }).value.trim();
     const box = document.getElementById('custom-recipe-result'), btn = document.getElementById('ai-btn');
@@ -85,11 +84,13 @@ function renderAiResult() {
                 ${r.time_min ? `<span class="text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">⏱ ${r.time_min} min</span>` : ''}
                 ${r.calories ? `<span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">≈ ${r.calories} kcal</span>` : ''}
                 ${r.protein_g ? `<span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">≈ ${r.protein_g} g proteína</span>` : ''}
+                ${r.carbs_g ? `<span class="text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">≈ ${r.carbs_g} g hidratos</span>` : ''}${r.fat_g ? `<span class="text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">≈ ${r.fat_g} g grasas</span>` : ''}
             </div>
             <p class="text-[11px] text-emerald-700">Ingredientes: ${r.ingredients.map(x => escapeHtml(x.name + (x.amount ? ' (' + x.amount + ')' : ''))).join(', ')}</p>
             <ol class="list-decimal pl-4 text-xs text-slate-600 space-y-1">${r.steps.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ol>
             ${r.tip ? `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${escapeHtml(r.tip)}</p>` : ''}
             <div class="flex gap-2"><button onclick="saveAiRecipe(${i})" class="flex-1 text-xs bg-slate-100 text-slate-700 font-semibold py-2 rounded-lg cursor-pointer">Guardar</button>
+            <button onclick="addAiToShopping(${i})" class="flex-1 text-xs bg-slate-100 text-slate-700 font-semibold py-2 rounded-lg cursor-pointer"><i class="fa-solid fa-cart-shopping mr-1" aria-hidden="true"></i>Compra</button>
             <button onclick="useAiRecipe(${i})" class="flex-1 text-xs bg-emerald-600 text-white font-semibold py-2 rounded-lg cursor-pointer">Usar en diario</button></div>
         </div>`).join('') +
         `<button onclick="generateAiRecipe(true)" class="w-full text-xs text-emerald-700 font-bold py-2 bg-emerald-50 rounded-xl cursor-pointer">Otras ideas con IA</button>

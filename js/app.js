@@ -76,7 +76,7 @@ function loadState() {
     renderAllSelects();
     renderAgenda();
     renderMonthlyCalendar();
-    renderRecipesCatalog();
+    renderRecipesCatalog(); renderMenuCard(); renderShopCard();
     loadHistory();
     updateTodayBadge();
 }

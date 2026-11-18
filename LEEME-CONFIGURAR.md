@@ -93,7 +93,8 @@ La web **nunca** habla con Gemini directamente ni lleva la clave: llama a una fu
    - `ALLOWED_ORIGIN`: la dirección de tu web, para que solo ella pueda llamar a la función.
    - `GEMINI_MODEL`: el modelo a usar, o varios separados por comas (se prueban por orden si el primero falla o no responde). Por defecto `gemini-3.8-flash,gemini-flash-latest,gemini-flash-lite-latest`. Si Google dice que un modelo está saturado (error 503), pasa al siguiente. **Google retira modelos con el tiempo**: si la app dice que la IA «aún no está lista» o «el modelo ya no existe», mira en AI Studio el nombre del modelo Flash vigente y ponlo aquí.
 5. **La app**: en `js/config.js` pon `AI_RECIPES: true`, súbelo a GitHub y espera a que se publique.
-6. **Probar**: inicia sesión → Recetas → escribe ingredientes → «Generar con IA».
+6. **Probar**: inicia sesión → Recetas → escribe ingredientes (o déjalo vacío para que la IA proponga recetas a tus macros y lo que hay que comprar) → «Generar con IA».
+   - Si ya tenías la función desplegada, **vuelve a pegar `supabase/functions/generate-recipe/index.ts`** y pulsa Deploy: ahora acepta ingredientes vacíos y devuelve también hidratos y grasas.
 
 **Coste y privacidad**
 - Con el plan gratuito de Gemini hay límites de uso; el límite diario por usuario evita sorpresas. No actives facturación en Google Cloud para esto.

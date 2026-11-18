@@ -19,6 +19,7 @@ Aplicación web para planificar y seguir tu entrenamiento, comidas y progreso, p
 - **Entreno**: cambia según el tipo de actividad del día (pesas, running con plan por niveles, clases, descanso…). Aprende de las sesiones guardadas: sugiere pesos y ajusta la progresión.
 - **Calendario**: plan semanal editable con botón de guardar, vista compacta y usable en móvil, y cambios puntuales por día.
 - **Recetas**: generador básico (local, sin IA) por ingredientes, objetivo, momento y sabor; **generador con IA** opcional (Gemini, a través de una función segura de Supabase con límite diario); recetas propias y colección guardada.
+- **Menú a tu medida y lista de la compra**: en Recetas, «Armar mi menú» monta las 4 comidas del día para acercarse a tus calorías, proteína, hidratos y grasas (los de tu metabolismo basal y objetivo), con «Otro plato» por comida y «Usar en diario». «Lista de la compra» reúne las cantidades por secciones, descuenta lo que escribas en «Alimentos que tienes en casa», se puede tachar, ampliar a mano, copiar y se sincroniza. La IA también recibe tus macros y, con el campo de ingredientes vacío, propone recetas y lo que hay que comprar.
 - **Progreso**: gráficas en vivo de medidas corporales y de kilómetros por día (varias carreras el mismo día se suman). El historial de medidas solo se muestra aquí.
 - **Perfil y cuenta** (botón de arriba a la derecha): registro con email o con Google (opcional, ver guía), inicio de sesión, recuperar y cambiar contraseña, exportar datos, borrar cuenta.
 - **Sincronización**: los datos se guardan primero en el dispositivo y se envían a la nube en segundo plano; funciona sin conexión y se actualiza al volver a la app.
@@ -48,6 +49,7 @@ js/
   storage.js          Exportar / importar datos
   recipe-engine.js    Motor del generador de recetas
   recipes.js          Pestaña Recetas
+  menu.js             Menú del día a tu medida (tabla de alimentos y platos) y lista de la compra
   calendar.js         Pestaña Calendario
   weight.js          Historial de peso, tendencia y gráfica (Progreso)
   summary.js         Resumen semanal y revisión automática del plan
@@ -170,7 +172,8 @@ Consejo: en los ajustes de compilación puedes desactivar **Preview builds** si 
 ## Próximos pasos
 
 - App instalable (PWA) con modo sin conexión completo.
-- Favoritos, filtros y calorías en recetas.
+- Menú semanal y platos vegetarianos/sin gluten en el menú a medida.
+- Favoritos y filtros en recetas.
 - Fusión por entradas (en vez de por bloque) para datos en forma de lista.
 
 ## Licencia

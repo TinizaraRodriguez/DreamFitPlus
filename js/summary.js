@@ -174,5 +174,5 @@ async function resolveAdvice(accept) {
         showToast('Plan actualizado ✅');
     }
     DB.setItem('dreamfit_adjust', JSON.stringify({ ts: Date.now(), kind: a.kind, accepted: !!(accept && a.apply) }));
-    renderGoalCard(); renderNutriCard(); renderWaterCard(); renderTodayLive(); renderAdviceCard();
+    renderGoalCard(); renderNutriCard(); renderMenuCard(); renderWaterCard(); renderTodayLive(); renderAdviceCard();
 }

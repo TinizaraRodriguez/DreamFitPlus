@@ -46,7 +46,7 @@ function calcNutrition(p) {
     const ml = Math.round(p.weight * 35 / 50) * 50;                 // 35 ml por kg
     const glasses = Math.min(8, Math.max(3, Math.round(ml / 500))); // vaso grande ≈ 500 ml
     const meals = {};
-    Object.entries(MEAL_SPLIT).forEach(([k, s]) => { meals[k] = { kcal: Math.round(kcal * s / 10) * 10, protein: Math.round(protein * s) }; });
+    Object.entries(MEAL_SPLIT).forEach(([k, s]) => { meals[k] = { kcal: Math.round(kcal * s / 10) * 10, protein: Math.round(protein * s), carbs: Math.round(carbs * s), fat: Math.round(fat * s) }; });
     return { bmr, tdee, kcal, adj, tweak, protein, fat, carbs, ml, glasses, meals, notes, factor };
 }
 const myNutrition = () => calcNutrition(getProfile());
@@ -66,7 +66,7 @@ function renderWaterCard() {
 function nutritionTarget(mealKey) {
     const n = myNutrition(), p = getProfile();
     if (!n || !n.meals[mealKey]) return null;
-    return { kcal: n.meals[mealKey].kcal, protein_g: n.meals[mealKey].protein, objective: p.goal };
+    return { kcal: n.meals[mealKey].kcal, protein_g: n.meals[mealKey].protein, carbs_g: n.meals[mealKey].carbs, fat_g: n.meals[mealKey].fat, objective: p.goal };
 }
 
 const nutriStat = (v, l, cls = '') => `<div class="rounded-xl p-2.5 text-center ${cls || 'bg-slate-50'}"><p class="text-base font-bold text-slate-900 leading-tight">${v}</p><p class="text-[10px] text-slate-500">${l}</p></div>`;

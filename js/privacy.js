@@ -24,7 +24,7 @@ function privacyHtml() {
         ${li([
             '<b>Cuenta:</b> tu nombre, tu email y tu contraseña (la contraseña la gestiona el servicio de autenticación y se guarda cifrada; la app nunca la ve en claro). Si entras con Google, recibimos tu nombre y tu email.',
             '<b>Datos de salud y hábitos</b> que tú introduces: sexo, edad, altura, peso e historial de peso, medidas de cintura y cadera, nivel de actividad y objetivo.',
-            '<b>Tu actividad:</b> entrenos, pesos y repeticiones, carreras, agua, comidas con calorías y proteína aproximadas, recetas guardadas y marcas del calendario.'
+            '<b>Tu actividad:</b> entrenos, pesos y repeticiones, carreras, agua, comidas con calorías y proteína aproximadas, recetas guardadas, lista de la compra y marcas del calendario.'
         ])}
         <p>No pedimos ni guardamos dirección, teléfono, datos de pago ni ubicación, y no usamos publicidad ni analítica de seguimiento.</p>
 

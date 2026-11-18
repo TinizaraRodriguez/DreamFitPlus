@@ -7,16 +7,20 @@ Views.addTab({
     html: `
 <div id="nutri-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
 
+<div id="menu-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
+
+<div id="shop-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
+
 <div class="bg-gradient-to-br from-teal-800 to-emerald-900 text-white p-5 rounded-2xl shadow-md space-y-4">
     <div class="flex items-center gap-2">
         <i class="fa-solid fa-wand-magic-sparkles text-amber-300 text-lg"></i>
         <h2 class="font-bold text-base">Generador por Alimentos disponibles</h2>
     </div>
-    <p class="text-xs text-emerald-100">Pon lo que tienes en casa y te propongo ideas adaptadas al momento del día y al sabor.</p>
+    <p class="text-xs text-emerald-100">Pon lo que tienes en casa y te propongo ideas adaptadas al momento del día y al sabor. Con IA, si lo dejas vacío te propongo recetas a tus macros y lo que haya que comprar.</p>
 
     <div class="space-y-3 text-xs">
         <div>
-            <label for="user-ingredients" class="block font-semibold text-emerald-200 mb-1">1. Alimentos que tienes en casa:</label>
+            <label for="user-ingredients" class="block font-semibold text-emerald-200 mb-1">1. Alimentos que tienes en casa (también descuenta de tu lista de la compra):</label>
             <input type="text" id="user-ingredients" placeholder="Ej: huevos, atún, avena, espinacas, plátano..." class="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-600/50 rounded-xl text-white placeholder-emerald-400/60">
         </div>
 

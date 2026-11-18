@@ -6,7 +6,11 @@ const AiRecipes = {
     enabled() {
         return typeof Auth !== 'undefined' && Auth.mode === 'supabase' && !!Auth.user && (window.DREAMFIT_CONFIG || {}).AI_RECIPES === true;
     },
-    async generate(payload) {
+    async generateMenu(payload) { // menú de un día (o de una sola comida con payload.only)
+        const d = await this.generate({ ...payload, mode: 'menu' }, 'menu');
+        return d;
+    },
+    async generate(payload, key = 'recipes') {
         const client = SupabaseBackend.client;
         const call = client.functions.invoke('generate-recipe', { body: payload });
         const timeout = new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), this.TIMEOUT_MS));
@@ -15,7 +19,7 @@ const AiRecipes = {
         catch (e) { throw { code: e && e.code === 'timeout' ? 'timeout' : 'network' }; }
         if (res.error) throw await this.readError(res.error);
         const d = res.data;
-        if (!d || !Array.isArray(d.recipes) || !d.recipes.length) throw { code: 'empty' };
+        if (!d || !Array.isArray(d[key]) || !d[key].length) throw { code: 'empty' };
         return d;
     },
     async readError(err) { // FunctionsHttpError trae la respuesta en context

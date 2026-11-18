@@ -120,5 +120,5 @@ function applyProfile(p) {
     DB.setItem('dreamfit_agenda_v2', JSON.stringify(planAgenda(profile)));
     renderAllSelects(); renderAgenda(); renderMonthlyCalendar(); updateTodayBadge();
     if (typeof renderEntrenoTab === 'function') renderEntrenoTab();
-    renderGoalCard(); renderNutriCard(); renderWaterCard(); renderTodayLive();
+    renderGoalCard(); renderNutriCard(); renderMenuCard(); renderWaterCard(); renderTodayLive();
 }

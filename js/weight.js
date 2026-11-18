@@ -25,7 +25,7 @@ function syncProfileWeight() { // el peso del perfil (y con él las calorías, m
 }
 function afterWeightChange() {
     syncProfileWeight();
-    renderWeight(); renderGoalCard(); renderNutriCard(); renderWaterCard(); renderTodayLive();
+    renderWeight(); renderGoalCard(); renderNutriCard(); renderMenuCard(); renderWaterCard(); renderTodayLive();
 }
 // Tendencia en kg por semana (regresión lineal de los últimos `days` días); null si hay pocos datos
 function weightTrend(days = 28) {

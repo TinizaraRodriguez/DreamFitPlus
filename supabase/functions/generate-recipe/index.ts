@@ -35,6 +35,8 @@ const SCHEMA = {
           time_min: { type: 'INTEGER' },
           calories: { type: 'INTEGER' },
           protein_g: { type: 'INTEGER' },
+          carbs_g: { type: 'INTEGER' },
+          fat_g: { type: 'INTEGER' },
           ingredients: { type: 'ARRAY', items: { type: 'OBJECT', properties: { name: { type: 'STRING' }, amount: { type: 'STRING' } }, required: ['name', 'amount'] } },
           steps: { type: 'ARRAY', items: { type: 'STRING' } },
           tip: { type: 'STRING' }
@@ -44,6 +46,33 @@ const SCHEMA = {
     }
   },
   required: ['recipes']
+};
+
+const MENU_MEALS = ['morn', 'lunch', 'snack', 'dinner'];
+const SECTIONS = ['carne', 'lacteos', 'fruta_verdura', 'despensa', 'otros'];
+const SCHEMA_MENU = {
+  type: 'OBJECT',
+  properties: {
+    menu: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          meal: { type: 'STRING', enum: MENU_MEALS },
+          title: { type: 'STRING' },
+          time_min: { type: 'INTEGER' },
+          calories: { type: 'INTEGER' },
+          protein_g: { type: 'INTEGER' },
+          carbs_g: { type: 'INTEGER' },
+          fat_g: { type: 'INTEGER' },
+          ingredients: { type: 'ARRAY', items: { type: 'OBJECT', properties: { name: { type: 'STRING' }, amount: { type: 'STRING' }, section: { type: 'STRING', enum: SECTIONS } }, required: ['name', 'amount', 'section'] } },
+          steps: { type: 'ARRAY', items: { type: 'STRING' } }
+        },
+        required: ['meal', 'title', 'time_min', 'calories', 'protein_g', 'carbs_g', 'fat_g', 'ingredients', 'steps']
+      }
+    }
+  },
+  required: ['menu']
 };
 
 const clean = (s: unknown, max: number) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -57,27 +86,61 @@ export function sanitizeRecipes(raw: any) {
     time_min: int(r?.time_min, 0, 240),
     calories: int(r?.calories, 0, 2500),
     protein_g: int(r?.protein_g, 0, 200),
+    carbs_g: int(r?.carbs_g, 0, 400),
+    fat_g: int(r?.fat_g, 0, 200),
     ingredients: (Array.isArray(r?.ingredients) ? r.ingredients : []).slice(0, 20).map((i: any) => ({ name: clean(i?.name, 60), amount: clean(i?.amount, 40) })).filter((i: any) => i.name),
     steps: (Array.isArray(r?.steps) ? r.steps : []).slice(0, 10).map((s: any) => clean(s, 300)).filter(Boolean),
     tip: clean(r?.tip, 200)
   })).filter((r: any) => r.title && r.ingredients.length && r.steps.length);
 }
 
+// Menú del día: una comida por momento (o solo una si se pide «only»), con macros y ingredientes con sección del súper.
+export function sanitizeMenu(raw: any, only = '') {
+  const list = Array.isArray(raw?.menu) ? raw.menu : [], seen = new Set<string>(), out: any[] = [];
+  for (const r of list) {
+    const meal = String(r?.meal ?? '');
+    if (!MENU_MEALS.includes(meal) || seen.has(meal) || (only && meal !== only)) continue;
+    const item = {
+      meal,
+      title: clean(r?.title, 80),
+      time_min: int(r?.time_min, 0, 240),
+      calories: int(r?.calories, 0, 2500),
+      protein_g: int(r?.protein_g, 0, 200),
+      carbs_g: int(r?.carbs_g, 0, 400),
+      fat_g: int(r?.fat_g, 0, 200),
+      ingredients: (Array.isArray(r?.ingredients) ? r.ingredients : []).slice(0, 20).map((i: any) => ({ name: clean(i?.name, 60), amount: clean(i?.amount, 40), section: SECTIONS.includes(i?.section) ? i.section : 'otros' })).filter((i: any) => i.name),
+      steps: (Array.isArray(r?.steps) ? r.steps : []).slice(0, 8).map((x: any) => clean(x, 300)).filter(Boolean)
+    };
+    if (!item.title || !item.ingredients.length || !item.steps.length || item.calories < 50) continue;
+    seen.add(meal); out.push(item);
+  }
+  return out.sort((a, b) => MENU_MEALS.indexOf(a.meal) - MENU_MEALS.indexOf(b.meal));
+}
+
 export function parseInput(b: any) {
   const ing = Array.isArray(b?.ingredients) ? b.ingredients : String(b?.ingredients ?? '').split(/[,;\n]/);
   const ingredients = ing.map((x: unknown) => clean(x, 40)).filter(Boolean).slice(0, 20);
-  if (ingredients.length < 1) return { error: 'Escribe al menos un ingrediente.' };
   if (ingredients.join(',').length > 400) return { error: 'La lista de ingredientes es demasiado larga.' };
+  if (b?.mode === 'menu') { // menú de todo el día
+    const num = (v: unknown, lo: number, hi: number) => { const n = Math.round(Number(v)); return Number.isFinite(n) && n >= lo && n <= hi ? n : 0; };
+    const day = b?.day || {}, meals: Record<string, any> = {};
+    for (const m of MENU_MEALS) { const x = b?.meals?.[m] || {}; meals[m] = { kcal: num(x.kcal, 50, 1500), protein_g: num(x.protein_g, 1, 120), carbs_g: num(x.carbs_g, 0, 300), fat_g: num(x.fat_g, 0, 120) }; }
+    const d = { kcal: num(day.kcal, 800, 5000), protein_g: num(day.protein_g, 20, 350), carbs_g: num(day.carbs_g, 20, 800), fat_g: num(day.fat_g, 15, 300), objective: OBJECTIVES[day.objective] || '' };
+    if (!d.kcal || !d.protein_g || MENU_MEALS.some(m => !meals[m].kcal)) return { error: 'Faltan tus objetivos de calorías y proteína. Calcúlalos en tu perfil.' };
+    const only = MENU_MEALS.includes(b?.only) ? b.only : '';
+    return { mode: 'menu', ingredients, restrictions: clean(b?.restrictions, 150), avoid: Array.isArray(b?.avoid) ? b.avoid.map((t: unknown) => clean(t, 80)).filter(Boolean).slice(0, 8) : [], day: d, meals, only };
+  }
   const goal = MEALS[b?.goal] ? b.goal : 'dinner';
   const flavor = FLAVORS[b?.flavor] ? b.flavor : 'salado';
   const restrictions = clean(b?.restrictions, 150);
   const avoid = Array.isArray(b?.avoid) ? b.avoid.map((t: unknown) => clean(t, 80)).filter(Boolean).slice(0, 6) : [];
   // Objetivo nutricional por ración (opcional): kcal y proteína de esa comida según el perfil de la persona
-  let target: { kcal: number; protein_g: number; objective: string } | null = null;
+  let target: { kcal: number; protein_g: number; carbs_g: number; fat_g: number; objective: string } | null = null;
   const t = b?.nutrition;
   if (t && typeof t === 'object') {
     const kcal = Math.round(Number(t.kcal)), protein_g = Math.round(Number(t.protein_g));
-    if (kcal >= 80 && kcal <= 1500 && protein_g >= 3 && protein_g <= 120) target = { kcal, protein_g, objective: OBJECTIVES[t.objective] || '' };
+    const carbs_g = Math.round(Number(t.carbs_g)) || 0, fat_g = Math.round(Number(t.fat_g)) || 0; // opcionales (0 = sin dato)
+    if (kcal >= 80 && kcal <= 1500 && protein_g >= 3 && protein_g <= 120 && carbs_g >= 0 && carbs_g <= 400 && fat_g >= 0 && fat_g <= 150) target = { kcal, protein_g, carbs_g, fat_g, objective: OBJECTIVES[t.objective] || '' };
   }
   return { ingredients, goal, flavor, restrictions, avoid, target };
 }
@@ -130,20 +193,28 @@ export async function handle(req: Request): Promise<Response> {
   // 4) Gemini
   // GEMINI_MODEL admite varios modelos separados por comas (se prueban por orden).
   const models = (env('GEMINI_MODEL') || 'gemini-3.8-flash,gemini-flash-latest,gemini-flash-lite-latest').split(',').map((x: string) => x.replace(/[^a-zA-Z0-9._-]/g, '')).filter(Boolean).slice(0, 3);
-  const prompt = `Ingredientes disponibles: ${inp.ingredients.join(', ')}.
+  const isMenu = inp.mode === 'menu';
+  const menuPrompt = isMenu ? `Monta ${inp.only ? 'SOLO la comida «' + inp.only + '» (' + MEALS[inp.only] + ')' : 'el menú de UN día con 4 comidas: morn (media mañana), lunch (almuerzo principal), snack (merienda) y dinner (cena)'} para una persona${inp.day.objective ? ' que quiere ' + inp.day.objective : ''}.
+Objetivo del día: ${inp.day.kcal} kcal, ${inp.day.protein_g} g de proteína, ${inp.day.carbs_g} g de hidratos y ${inp.day.fat_g} g de grasas. Reparto por comida (kcal / proteína / hidratos / grasas): ${MENU_MEALS.filter((m: string) => !inp.only || m === inp.only).map((m: string) => `${m}: ${inp.meals[m].kcal} kcal / ${inp.meals[m].protein_g} g / ${inp.meals[m].carbs_g} g / ${inp.meals[m].fat_g} g`).join('; ')}.
+Ajusta las cantidades de cada receta para acercarte lo más posible a esos números (calories, protein_g, carbs_g y fat_g de cada una deben ser coherentes con sus ingredientes y cantidades; indica en amount los gramos o unidades para UNA persona).
+Haz el menú variado y apetecible (no repitas el ingrediente principal en comida y cena), con recetas sencillas de supermercado y pocos pasos. En cada ingrediente indica la sección del súper (carne = carne y pescado; lacteos = huevos y lácteos; fruta_verdura; despensa; otros).
+${inp.ingredients.length ? 'Intenta aprovechar lo que ya tiene en casa: ' + inp.ingredients.join(', ') + '.' : ''}
+Alergias o restricciones: ${inp.restrictions || 'ninguna indicada'}.
+${inp.avoid.length ? 'Ya te propuse estos platos (no los repitas): ' + inp.avoid.join('; ') + '.' : ''}` : '';
+  const prompt = isMenu ? menuPrompt : `${inp.ingredients.length ? 'Ingredientes disponibles: ' + inp.ingredients.join(', ') + '. Puedes añadir lo básico de despensa y, si hace falta, algún ingrediente extra a comprar.' : 'La persona no tiene ingredientes concretos: propón recetas con alimentos comunes de supermercado (en «ingredients» pon lo que haya que comprar, con cantidad aproximada para una ración).'}
 Momento: ${MEALS[inp.goal]}. Sabor: ${FLAVORS[inp.flavor]}.
 Alergias o restricciones: ${inp.restrictions || 'ninguna indicada'}.
-${inp.target ? `Objetivo nutricional orientativo por ración: unas ${inp.target.kcal} kcal y unos ${inp.target.protein_g} g de proteína${inp.target.objective ? ' (la persona quiere ' + inp.target.objective + ')' : ''}. Ajusta las cantidades para acercarte a ello.` : ''}
+${inp.target ? `Objetivo nutricional orientativo por ración: unas ${inp.target.kcal} kcal y unos ${inp.target.protein_g} g de proteína${inp.target.carbs_g ? ', ' + inp.target.carbs_g + ' g de hidratos' : ''}${inp.target.fat_g ? ' y ' + inp.target.fat_g + ' g de grasas' : ''}${inp.target.objective ? ' (la persona quiere ' + inp.target.objective + ')' : ''}. Ajusta las cantidades para acercarte a ello.` : ''}
 ${inp.avoid.length ? 'Ya te propuse estas (no las repitas): ' + inp.avoid.join('; ') + '.' : ''}
 Dame 2 recetas distintas.`;
   const genFor = (m: string, schema: boolean) => { // menos «pensar» = respuestas más rápidas; cada familia usa un ajuste distinto
-    const g: any = { responseMimeType: 'application/json', temperature: 0.9, maxOutputTokens: 4096 }; // margen: los modelos con «razonamiento» gastan parte de este límite
-    if (schema) g.responseSchema = SCHEMA;
+    const g: any = { responseMimeType: 'application/json', temperature: 0.9, maxOutputTokens: isMenu ? 8192 : 4096 }; // margen: los modelos con «razonamiento» gastan parte de este límite
+    if (schema) g.responseSchema = isMenu ? SCHEMA_MENU : SCHEMA;
     if (/2\.5-flash/.test(m)) g.thinkingConfig = { thinkingBudget: 0 };
     else if (/^gemini-3/.test(m)) g.thinkingConfig = { thinkingLevel: 'low' };
     return g;
   };
-  const SHAPE = '{"recipes":[{"title":"","time_min":0,"calories":0,"protein_g":0,"ingredients":[{"name":"","amount":""}],"steps":[""],"tip":""}]}';
+  const SHAPE = isMenu ? '{"menu":[{"meal":"morn|lunch|snack|dinner","title":"","time_min":0,"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"ingredients":[{"name":"","amount":"","section":"carne|lacteos|fruta_verdura|despensa|otros"}],"steps":[""]}]}' : '{"recipes":[{"title":"","time_min":0,"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"ingredients":[{"name":"","amount":""}],"steps":[""],"tip":""}]}';
   const send = (m: string, g: any, schema: boolean, ms: number) => {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
     const text = schema ? prompt : `${prompt}\nResponde SOLO con JSON válido, sin texto extra ni bloques de código, con esta forma exacta: ${SHAPE}`;
@@ -159,7 +230,7 @@ Dame 2 recetas distintas.`;
   // Orden: cada modelo de la lista con esquema. Solo para el PRIMER modelo, si el intento falla por otra causa distinta de
   // «saturado/retirado» (p. ej. se cuelga), se repite sin esquema pidiendo el JSON en el texto.
   // 503 = Gemini saturado: no se repite el mismo modelo, se pasa al siguiente tras una pausa breve.
-  const perTry = 18000;
+  const perTry = isMenu ? 40000 : 18000;
   const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
   let out: any = null, lastCode = 'upstream', lastStatus = 502, lastMsg = 'La IA no ha podido responder.';
   const busyMsg = 'La IA de Google está saturada ahora mismo. Inténtalo de nuevo en un minuto.';
@@ -194,6 +265,11 @@ Dame 2 recetas distintas.`;
     if (r1 === 'retry-text' && i === 0) { const r2 = await attempt(models[i], false); if (r2 === 'ok' || r2 === 'stop') break; }
   }
   if (out === null) { await refund(); return json({ code: lastCode, error: lastMsg }, lastStatus, cors); }
+  if (isMenu) {
+    const menu = sanitizeMenu(out, inp.only);
+    if ((inp.only && menu.length < 1) || (!inp.only && menu.length < 3)) { await refund(); return json({ code: 'empty', error: 'La IA no ha podido montar el menú completo. Inténtalo de nuevo.' }, 422, cors); }
+    return json({ menu, remaining, limit }, 200, cors);
+  }
   const recipes = sanitizeRecipes(out);
   if (!recipes.length) { await refund(); return json({ code: 'empty', error: 'Con esos datos no he podido montar una receta. Prueba con otros ingredientes.' }, 422, cors); }
   return json({ recipes, remaining, limit }, 200, cors);
