@@ -82,14 +82,26 @@ function bodyFactor(p = eff()) {
     const bw = Math.min(1.3, Math.max(0.8, Math.pow(p.weight / BODY_REF[p.sex], 0.7))); // el peso corporal influye, pero menos que proporcional
     return Math.round(SEX_STRENGTH[p.sex] * bw * 100) / 100;
 }
+// Cambio de ejercicio: el usuario sustituye un ejercicio por otro parecido y se recuerda para todo su plan (clave = ejercicio original "rol.lugar")
+const SWAP_RELATED = { vpull: ['hpull'], hpull: ['vpull'], biceps: ['hammer'], hammer: ['biceps'], rear: ['lateral', 'hpull'], hpush: ['fly', 'vpush'], vpush: ['lateral', 'hpush'], triceps: ['vpush', 'hpush'], fly: ['hpush'], lateral: ['vpush', 'rear'], squat: ['quad', 'glute'], quad: ['squat'], abductor: ['glute', 'squat'], hamstring: ['glute'], glute: ['hamstring', 'abductor'], calf: [], core: [] };
+const getSwaps = () => safeParse('dreamfit_swaps', {});
+// alternativas de un hueco del plan: el mismo ejercicio en el otro lugar (gimnasio/casa) y ejercicios parecidos en el lugar del usuario
+function swapOptions(role, place) {
+    const other = place === 'gym' ? 'home' : 'gym', out = [{ key: role + '.' + other, role, place: other, name: ROLES[role][other][0], hint: other === 'home' ? 'con mancuernas' : 'en máquina' }];
+    for (const r of SWAP_RELATED[role] || []) out.push({ key: r + '.' + place, role: r, place, name: ROLES[r][place][0], hint: 'parecido' });
+    return out;
+}
+function setSwap(slot, key) { const m = getSwaps(); if (!key || key === slot) delete m[slot]; else m[slot] = key; DB.setItem('dreamfit_swaps', JSON.stringify(m)); }
+function buildExercise(slot, p, step, bf) {
+    const swaps = getSwaps(), [sr, sp] = slot.split('.'), alt = swaps[slot], [role, place] = alt && ROLES[alt.split('.')[0]] && ROLES[alt.split('.')[0]][alt.split('.')[1]] ? alt.split('.') : [sr, sp];
+    const [name, tech, w, q] = ROLES[role][place];
+    const base = (place === 'home' ? w * (p.level === 'adv' ? 1.5 : p.level === 'mid' ? 1.25 : 1) : w * LEVELS[p.level].f) * bf;
+    const vid = (EXERCISE_VIDEOS[role] || {})[place], info = EXERCISE_INFO[role] || {};
+    return { name, tech, role, place, slot, swapped: slot !== role + '.' + place, muscles: { p: info.p || [], s: info.s || [] }, err: info.err || '', videoUrl: vid ? 'https://www.youtube.com/watch?v=' + vid : yt(q), moreUrl: yt(q), defaultWeight: Math.max(step, Math.round(base / step) * step) };
+}
 function planRoutines(p = eff()) {
     const n = LEVELS[p.level].n + (p.goal === 'muscle' && p.level === 'adv' ? 1 : 0), step = p.place === 'home' ? 2 : 2.5, bf = bodyFactor(p);
-    return routinePlan(p).map(r => ROUTINES[r].slice(0, n).map(role => {
-        const [name, tech, w, q] = ROLES[role][p.place];
-        const base = (p.place === 'home' ? w * (p.level === 'adv' ? 1.5 : p.level === 'mid' ? 1.25 : 1) : w * LEVELS[p.level].f) * bf;
-        const vid = (EXERCISE_VIDEOS[role] || {})[p.place], info = EXERCISE_INFO[role] || {};
-        return { name, tech, role, place: p.place, muscles: { p: info.p || [], s: info.s || [] }, err: info.err || '', videoUrl: vid ? 'https://www.youtube.com/watch?v=' + vid : yt(q), moreUrl: yt(q), defaultWeight: Math.max(step, Math.round(base / step) * step) };
-    }));
+    return routinePlan(p).map(r => ROUTINES[r].slice(0, n).map(role => buildExercise(role + '.' + p.place, p, step, bf)));
 }
 
 // semana: días de fuerza + cardio según objetivo + descansos

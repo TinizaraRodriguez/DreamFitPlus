@@ -68,6 +68,19 @@ function wkFinish() {
     if (wk.done.every(Boolean)) { wkStopRest(); renderWorkout(); } // rutina completa
     else { wkRest(wk.sc.rest); renderWorkout('next'); }
 }
+function wkSwap(key) { // sustituye el ejercicio actual por otra opción (solo si aún no se ha empezado)
+    const m = wk.machines[wk.idx]; if (wk.done[wk.idx] || wk.sets[wk.idx].some(s => s.ok)) { showToast('Solo puedes cambiarlo antes de marcar series.'); return; }
+    setSwap(m.slot, key === 'orig' ? null : key);
+    wk.machines = getDayMachines(getTodayName());
+    const w = suggestWeight(wk.machines[wk.idx]).w;
+    wk.sets[wk.idx] = Array.from({ length: wk.sc.sets }, () => ({ w, reps: wk.range.max, ok: false }));
+    showToast('Ejercicio cambiado: ' + wk.machines[wk.idx].name); renderWorkout('top');
+}
+function swapPanel(m) {
+    const opts = swapOptions(m.slot.split('.')[0], m.slot.split('.')[1]).filter(o => o.key !== m.role + '.' + m.place && !wk.machines.some(x => x.name === o.name));
+    const orig = m.swapped ? `<button onclick="wkSwap('orig')" class="w-full text-left text-xs p-2.5 rounded-lg bg-white border border-slate-200 cursor-pointer"><b>Volver al original</b> · ${escapeHtml(ROLES[m.slot.split('.')[0]][m.slot.split('.')[1]][0])}</button>` : '';
+    return `<details class="bg-white border border-slate-100 rounded-2xl"><summary class="p-3 text-xs font-bold text-slate-700 cursor-pointer"><i class="fa-solid fa-arrows-rotate mr-1.5" aria-hidden="true"></i> Cambiar ejercicio</summary><div class="px-3 pb-3 space-y-1.5"><p class="text-[11px] text-slate-500">¿Máquina ocupada o no te va bien? Elige una alternativa; se recordará en tu plan.</p>${orig}${opts.map(o => `<button onclick="wkSwap('${o.key}')" class="w-full text-left text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer"><b>${escapeHtml(o.name)}</b> <span class="text-slate-500">· ${o.hint}</span></button>`).join('')}</div></details>`;
+}
 function wkGo(d) { // d = +1 / -1
     wk.idx = Math.min(wk.machines.length - 1, Math.max(0, wk.idx + d)); renderWorkout('top');
 }
@@ -170,6 +183,7 @@ function renderWorkout(focus) {
                 <p class="text-xs text-slate-600"><b>${sc.sets} series × ${sc.reps} repeticiones</b> · descanso ${sc.restLabel}</p>
             </div>
             ${lastTimeCard(m)}
+            ${isDone || sets.some(x => x.ok) ? '' : swapPanel(m)}
             <div class="bg-white border border-slate-100 rounded-2xl p-4 space-y-2.5"><h4 class="text-xs font-bold text-slate-900">Cómo se hace</h4>${typeof techniqueAnim === 'function' && m.role ? techniqueAnim(m.role, m.place || 'gym', m.muscles) : ''}${typeof exerciseFigure === 'function' ? exerciseFigure(m.muscles) : ''}<p class="text-xs text-slate-600">${escapeHtml(m.tech)}</p>${m.err ? `<p class="text-[11px] text-red-700 bg-red-50 p-2 rounded-lg">⚠️ Error típico: ${escapeHtml(m.err)}</p>` : ''}<a href="${escapeHtml(m.videoUrl)}" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 font-bold text-xs py-2.5 rounded-xl"><i class="fa-solid fa-play" aria-hidden="true"></i> Ver vídeo del ejercicio</a>${m.moreUrl ? `<a href="${escapeHtml(m.moreUrl)}" target="_blank" rel="noopener" class="block text-center text-[11px] text-slate-500 underline">Ver más vídeos</a>` : ''}</div>
             ${isDone ? '' : `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>`}
             <div class="space-y-2" role="group" aria-label="Series">${rows}</div>
