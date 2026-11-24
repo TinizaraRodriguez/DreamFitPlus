@@ -6,7 +6,7 @@ const ING = {
     jamon: ['jamon', 'york', 'serrano'], pavo: ['pavo'], pollo: ['pollo'],
     carne: ['ternera', 'cerdo', 'carne', 'hamburguesa', 'lomo', 'salchicha'],
     pescado: ['salmon', 'merluza', 'bacalao', 'dorada', 'lubina', 'pescado', 'gamba', 'langostino'],
-    pan: ['pan', 'tostada', 'baguette'], wrap: ['wrap', 'tortilla de trigo'], avena: ['avena', 'copos'],
+    pan: ['pan', 'tostada', 'baguette', 'pita'], wrap: ['wrap', 'tortilla de trigo'], avena: ['avena', 'copos'],
     yogur: ['yogur', 'yogurt', 'skyr', 'kefir'], platano: ['platano', 'banana'], manzana: ['manzana'],
     fruta: ['fruta', 'fresa', 'pera', 'naranja', 'mandarina', 'kiwi', 'melocoton', 'uva', 'arandano', 'mango', 'pina'],
     frutos_secos: ['almendra', 'nuez', 'nueces', 'anacardo', 'cacahuete', 'pistacho', 'avellana', 'frutos secos'],
@@ -14,7 +14,8 @@ const ING = {
     cebolla: ['cebolla', 'puerro'], pimiento: ['pimiento'], champi: ['champinon', 'seta', 'hongo'],
     verdura: ['lechuga', 'espinaca', 'canonigo', 'rucula', 'ensalada'], zanahoria: ['zanahoria'],
     calabacin: ['calabacin', 'berenjena'], legumbre: ['lenteja', 'garbanzo', 'judia', 'alubia', 'frijol'],
-    aguacate: ['aguacate'], harina: ['harina'], canela: ['canela'], maiz: ['maiz']
+    aguacate: ['aguacate'], harina: ['harina'], canela: ['canela'], maiz: ['maiz'],
+    tofu: ['tofu'], quinoa: ['quinoa'], cuscus: ['cuscus', 'cous cous'], hummus: ['hummus', 'humus'], chia: ['chia']
 };
 const SHOW = { macarron: 'pasta', pescado: 'pescado', frutos_secos: 'frutos secos', champi: 'champiñones', calabacin: 'calabacín', verdura: 'verdura/ensalada', legumbre: 'legumbres', wrap: 'wraps', atun: 'atún', platano: 'plátano', jamon: 'jamón' };
 const show = k => SHOW[k] || k;
@@ -79,6 +80,28 @@ const RECIPES = [
       s: ['Saltea los champiñones laminados hasta que suelten el agua.', 'Añade los huevos batidos y remueve hasta que cuajen.'], x: { jamon: 'Añade jamón en tacos.', cebolla: 'Pocha cebolla antes de los champiñones.' } },
     { n: 'Bocadillo de atún con tomate', m: 'morn snack dinner', f: 's', r: ['pan', 'atun'], o: ['tomate', 'huevo', 'aguacate', 'verdura', 'queso'], t: '5 min', g: 'Práctico',
       s: ['Mezcla el atún escurrido con tomate triturado.', 'Rellena el pan y completa con lo que tengas.'], x: { huevo: 'Añade huevo cocido en rodajas.', verdura: 'Pon hojas verdes para dar frescor.' } },
+    { n: 'Tofu salteado con verduras', m: 'lunch dinner', f: 's', r: ['tofu'], o: ['calabacin', 'pimiento', 'champi', 'cebolla', 'zanahoria', 'arroz', 'verdura'], t: '15 min', g: 'Vegetal',
+      s: ['Seca el tofu y córtalo en dados; dóralo en sartén con poco aceite hasta que esté crujiente.', 'Saltea las verduras a fuego fuerte y mezcla con el tofu.'], x: { arroz: 'Sírvelo sobre arroz cocido.', champi: 'Los champiñones aportan mucho sabor.' } },
+    { n: 'Quinoa con verduras y huevo', m: 'lunch dinner', f: 's', r: ['quinoa', 'huevo|calabacin|pimiento|champi|tomate'], o: ['calabacin', 'pimiento', 'tomate', 'cebolla', 'aguacate', 'queso'], t: '20 min', g: 'Completo',
+      s: ['Lava la quinoa y cuécela 12-15 min con doble de agua.', 'Saltea las verduras y mézclalas con la quinoa; corona con un huevo a la plancha.'], x: { aguacate: 'Añade aguacate en dados.', queso: 'Termina con queso rallado.' } },
+    { n: 'Cuscús con verduras y proteína', m: 'lunch dinner', f: 's', r: ['cuscus'], o: ['pollo', 'atun', 'pavo', 'calabacin', 'pimiento', 'tomate', 'cebolla'], t: '12 min', g: 'Rápido',
+      s: ['Cubre el cuscús con agua caliente (mismo volumen), tapa 5 min y suelta con un tenedor.', 'Saltea verduras y proteína y mézclalo todo.'], x: { atun: 'Añade atún escurrido al final.', pollo: 'Saltea el pollo en dados antes que las verduras.' } },
+    { n: 'Tostada de hummus con verduras', m: 'morn snack lunch', f: 's', r: ['pan', 'hummus'], o: ['tomate', 'verdura', 'zanahoria', 'huevo', 'aguacate'], t: '5 min', g: 'Vegetal',
+      s: ['Tuesta el pan y unta el hummus.', 'Cubre con verduras en láminas.'], x: { huevo: 'Añade huevo cocido en rodajas.', aguacate: 'Suma aguacate para más saciedad.' } },
+    { n: 'Bol de legumbres con atún', m: 'lunch dinner', f: 's', r: ['legumbre', 'atun'], o: ['tomate', 'cebolla', 'huevo', 'aguacate', 'verdura', 'pimiento'], t: '10 min', g: 'Proteico',
+      s: ['Escurre y enjuaga las legumbres.', 'Mézclalas con el atún y las verduras en crudo y aliña con aceite, sal y limón.'], x: { huevo: 'Añade huevo cocido.', aguacate: 'Pon aguacate en dados.' } },
+    { n: 'Calabacín o berenjena gratinados', m: 'lunch dinner', f: 's', r: ['calabacin', 'queso'], o: ['tomate', 'pavo', 'jamon', 'carne', 'cebolla'], t: '30 min', g: 'Ligero',
+      s: ['Corta las verduras en rodajas o abiertas por la mitad y hornéalas 15 min a 200 ºC.', 'Cubre con tomate, queso y lo que tengas y gratina 5-8 min.'], x: { pavo: 'Rellénalas con pavo salteado.', carne: 'Rellénalas con carne picada sofrita.' } },
+    { n: 'Carne a la plancha con patatas', m: 'lunch dinner', f: 's', r: ['carne', 'patata'], o: ['pimiento', 'cebolla', 'verdura', 'tomate'], t: '25 min', g: 'Proteico',
+      s: ['Cuece o asa las patatas en rodajas.', 'Haz la carne a la plancha 3-4 min por lado y sirve con ensalada.'], x: { pimiento: 'Asa pimientos de acompañamiento.' } },
+    { n: 'Revuelto de gambas o pescado', m: 'dinner lunch', f: 's', r: ['huevo', 'pescado'], o: ['champi', 'cebolla', 'calabacin', 'pan'], t: '12 min', g: 'Ligero',
+      s: ['Saltea el pescado o las gambas troceadas 2-3 min.', 'Añade los huevos batidos y remueve hasta que cuajen.'], x: { champi: 'Saltea champiñones antes.', pan: 'Acompaña con una tostada.' } },
+    { n: 'Pasta con verduras salteadas', m: 'lunch dinner', f: 's', r: ['macarron', 'calabacin|pimiento|champi|cebolla|verdura|tomate'], o: ['queso', 'atun', 'pollo', 'calabacin', 'pimiento', 'champi', 'tomate'], t: '20 min', g: 'Saciante',
+      s: ['Cuece la pasta al dente.', 'Saltea las verduras a fuego fuerte y mézclalas con la pasta y un chorrito del agua de cocción.'], x: { queso: 'Termina con queso rallado.', atun: 'Añade atún escurrido.', pollo: 'Saltea pollo en tiras con las verduras.' } },
+    { n: 'Tortilla de patatas', m: 'lunch dinner morn', f: 's', r: ['huevo', 'patata'], o: ['cebolla', 'pimiento', 'jamon'], t: '25 min', g: 'Clásico',
+      s: ['Pocha la patata en rodajas finas (y cebolla) en poco aceite hasta que esté blanda.', 'Mézclala con los huevos batidos y cuaja por ambos lados.'], x: { cebolla: 'Con cebolla queda más jugosa.', jamon: 'Añade tacos de jamón.' } },
+    { n: 'Pollo al yogur', m: 'lunch dinner', f: 's', r: ['pollo', 'yogur'], o: ['arroz', 'cebolla', 'pimiento', 'patata'], t: '25 min', g: 'Tierno',
+      s: ['Marina el pollo en dados con yogur, sal y especias 10 min (o más).', 'Dóralo en sartén o al horno y sírvelo con arroz o patata.'], x: { arroz: 'Acompaña con arroz cocido.', cebolla: 'Dora cebolla con el pollo.' } },
     // ----- DULCES -----
     { n: 'Arroz con leche exprés', m: 'snack dinner morn', f: 'd', r: ['arroz', 'leche'], o: ['canela', 'miel', 'platano', 'manzana', 'cacao'], t: '20 min', g: 'Anti-ansiedad',
       s: ['Calienta 1 vaso de leche con 3-4 cucharadas de arroz cocido a fuego bajo.', 'Remueve 8-10 min hasta que espese.', 'Endulza al gusto, sin azúcar añadido.'], x: { canela: 'Espolvorea canela.', miel: 'Endulza con un hilo de miel.', platano: 'Machaca medio plátano dentro para endulzar.', cacao: 'Añade una cucharadita de cacao.' } },
@@ -97,7 +120,17 @@ const RECIPES = [
     { n: 'Manzana asada al microondas', m: 'snack dinner', f: 'd', r: ['manzana'], o: ['canela', 'avena', 'miel', 'frutos_secos', 'yogur'], t: '5 min', g: 'Anti-ansiedad',
       s: ['Quita el corazón a la manzana y ponla en un plato.', 'Microondas 3-4 min hasta que esté blanda.'], x: { canela: 'Espolvorea canela.', avena: 'Rellena el hueco con avena.', yogur: 'Sírvela con yogur.' } },
     { n: 'Torrijas al horno', m: 'snack morn dinner', f: 'd', r: ['pan', 'leche', 'huevo'], o: ['canela', 'miel'], t: '20 min', g: 'Reconfortante',
-      s: ['Empapa rebanadas de pan en leche y luego en huevo batido.', 'Hornea 12-15 min a 200 ºC dándoles la vuelta a mitad.'], x: { canela: 'Espolvorea canela.', miel: 'Termina con un hilo de miel.' } }
+      s: ['Empapa rebanadas de pan en leche y luego en huevo batido.', 'Hornea 12-15 min a 200 ºC dándoles la vuelta a mitad.'], x: { canela: 'Espolvorea canela.', miel: 'Termina con un hilo de miel.' } },
+    { n: 'Bol de yogur con chía y fruta', m: 'morn snack', f: 'd', r: ['yogur', 'chia'], o: ['fruta', 'platano', 'manzana', 'miel', 'avena', 'frutos_secos'], t: '3 min', g: 'Saciante',
+      s: ['Mezcla el yogur con una cucharada de chía y deja reposar 5 min.', 'Añade la fruta por encima.'], x: { avena: 'Suma una cucharada de avena.', frutos_secos: 'Termina con frutos secos.' } },
+    { n: 'Pudin de chía', m: 'morn snack dinner', f: 'd', r: ['chia', 'leche|yogur'], o: ['platano', 'fruta', 'cacao', 'miel', 'canela', 'manzana'], t: '5 min + reposo', g: 'Anti-ansiedad',
+      s: ['Mezcla 3 cucharadas de chía con 1 vaso de leche (o yogur).', 'Reposa 2 h en la nevera (o toda la noche) y añade fruta.'], x: { cacao: 'Añade cacao para un pudin de chocolate.', platano: 'Machaca plátano dentro para endulzar.' } },
+    { n: 'Tostada de crema de frutos secos y plátano', m: 'morn snack', f: 'd', r: ['pan', 'frutos_secos'], o: ['platano', 'manzana', 'miel', 'cacao', 'canela'], t: '5 min', g: 'Energético',
+      s: ['Tuesta el pan y unta crema de cacahuete o almendra fina.', 'Cubre con rodajas de plátano o manzana.'], x: { canela: 'Espolvorea canela.', miel: 'Un hilo de miel si lo necesitas.' } },
+    { n: 'Plátano con chocolate negro', m: 'snack dinner', f: 'd', r: ['platano', 'cacao'], o: ['frutos_secos', 'yogur', 'canela', 'avena'], t: '5 min', g: 'Anti-ansiedad',
+      s: ['Corta el plátano en rodajas.', 'Derrite 2-3 onzas de chocolate negro 30 s en microondas y báñalo.'], x: { frutos_secos: 'Termina con frutos secos picados.', yogur: 'Sírvelo con yogur.' } },
+    { n: 'Gachas de quinoa dulces', m: 'morn snack', f: 'd', r: ['quinoa', 'leche'], o: ['canela', 'platano', 'manzana', 'fruta', 'miel', 'frutos_secos'], t: '15 min', g: 'Reconfortante',
+      s: ['Cuece la quinoa en leche a fuego bajo 12-15 min hasta que espese.', 'Sirve con la fruta y canela.'], x: { canela: 'Espolvorea canela.', frutos_secos: 'Añade frutos secos picados.' } }
 ];
 
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();

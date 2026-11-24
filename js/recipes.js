@@ -58,7 +58,7 @@ async function generateAiRecipe(more = false) {
     if (aiState.busy) return;
     const raw = document.getElementById('user-ingredients').value.trim();
     const goal = document.getElementById('user-goal').value, flavor = document.getElementById('user-flavor').value;
-    const restrictions = (document.getElementById('user-restrictions') || { value: '' }).value.trim();
+    const restrictions = [typeof dietText === 'function' ? dietText() : '', (document.getElementById('user-restrictions') || { value: '' }).value.trim()].filter(Boolean).join('. ');
     const box = document.getElementById('custom-recipe-result'), btn = document.getElementById('ai-btn');
     const avoid = more ? aiState.items.map(r => r.title) : [];
     aiState.busy = true; btn.disabled = true; btn.dataset.t = btn.dataset.t || btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pensando…';

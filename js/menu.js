@@ -41,8 +41,59 @@ const FOODS = {
     aguacate:   { n: 'Aguacate', c: 'fruta_verdura', k: 'aguacate', e: [160, 2, 9, 15] },
     platano:    { n: 'Plátano', c: 'fruta_verdura', k: 'platano', e: [90, 1, 23, 0.3], u: [120, 'plátano', 'plátanos'] },
     manzana:    { n: 'Manzana', c: 'fruta_verdura', k: 'manzana', e: [52, 0.3, 14, 0.2], u: [180, 'manzana', 'manzanas'] },
-    frutosrojos:{ n: 'Fruta (fresas, frutos rojos…)', c: 'fruta_verdura', k: 'fruta', e: [40, 0.8, 8, 0.3] }
+    frutosrojos:{ n: 'Fruta (fresas, frutos rojos…)', c: 'fruta_verdura', k: 'fruta', e: [40, 0.8, 8, 0.3] },
+    cerdo:      { n: 'Lomo de cerdo', c: 'carne', k: 'carne', e: [140, 22, 0, 5] },
+    gambas:     { n: 'Gambas / langostinos', c: 'carne', k: 'pescado', e: [85, 18, 1, 1] },
+    bacalao:    { n: 'Bacalao', c: 'carne', k: 'pescado', e: [82, 18, 0, 0.7] },
+    sardina:    { n: 'Sardinas (lata al natural)', c: 'carne', k: 'pescado', e: [150, 22, 0, 7] },
+    tofu:       { n: 'Tofu firme', c: 'despensa', k: null, e: [120, 13, 2, 7] },
+    garbanzo:   { n: 'Garbanzos cocidos (bote)', c: 'despensa', k: 'legumbre', e: [140, 8, 20, 3] },
+    quinoa:     { n: 'Quinoa', c: 'despensa', k: null, e: [368, 14, 64, 6] },
+    cuscus:     { n: 'Cuscús', c: 'despensa', k: null, e: [360, 12, 73, 1.5] },
+    pita:       { n: 'Pan de pita', c: 'despensa', k: 'pan', e: [275, 9, 55, 1.2], u: [60, 'pan de pita', 'panes de pita'] },
+    tortitas:   { n: 'Tortitas de arroz', c: 'despensa', k: null, e: [380, 8, 82, 3], u: [9, 'tortita', 'tortitas'] },
+    hummus:     { n: 'Hummus', c: 'despensa', k: null, e: [230, 8, 14, 18] },
+    chia:       { n: 'Semillas de chía', c: 'despensa', k: null, e: [486, 17, 42, 31] },
+    soja:       { n: 'Bebida de soja', c: 'despensa', k: 'leche', e: [40, 3.3, 2.5, 1.8] },
+    chocolate:  { n: 'Chocolate negro 85%', c: 'despensa', k: 'cacao', e: [600, 10, 20, 45] },
+    almendras:  { n: 'Almendras', c: 'despensa', k: 'frutos_secos', e: [579, 21, 22, 50] },
+    nueces:     { n: 'Nueces', c: 'despensa', k: 'frutos_secos', e: [654, 15, 14, 65] },
+    mozzarella: { n: 'Mozzarella light', c: 'lacteos', k: 'queso', e: [160, 18, 2, 9] },
+    feta:       { n: 'Queso feta', c: 'lacteos', k: 'queso', e: [260, 14, 4, 21] },
+    requeson:   { n: 'Requesón / queso cottage', c: 'lacteos', k: 'queso', e: [98, 11, 3.4, 4.3] },
+    kefir:      { n: 'Kéfir', c: 'lacteos', k: 'yogur', e: [50, 3.5, 4, 2] },
+    berenjena:  { n: 'Berenjena', c: 'fruta_verdura', k: 'calabacin', e: [25, 1, 6, 0.2] },
+    coliflor:   { n: 'Coliflor', c: 'fruta_verdura', k: 'calabacin', e: [25, 2, 5, 0.3] },
+    judias:     { n: 'Judías verdes', c: 'fruta_verdura', k: 'verdura', e: [31, 1.8, 7, 0.2] },
+    pepino:     { n: 'Pepino', c: 'fruta_verdura', k: 'verdura', e: [15, 0.7, 3.6, 0.1] },
+    naranja:    { n: 'Naranja', c: 'fruta_verdura', k: 'fruta', e: [47, 0.9, 12, 0.1], u: [150, 'naranja', 'naranjas'] },
+    pera:       { n: 'Pera', c: 'fruta_verdura', k: 'fruta', e: [57, 0.4, 15, 0.1], u: [170, 'pera', 'peras'] },
+    kiwi:       { n: 'Kiwi', c: 'fruta_verdura', k: 'fruta', e: [61, 1.1, 15, 0.5], u: [75, 'kiwi', 'kiwis'] },
+    uvas:       { n: 'Uvas', c: 'fruta_verdura', k: 'fruta', e: [69, 0.7, 18, 0.2] }
 };
+// etiquetas para filtrar por tipo de alimentación, alergias e intolerancias
+const FOOD_TAGS = {
+    meat: ['pollo', 'pavo', 'ternera', 'jamon', 'cerdo'], fish: ['atun', 'salmon', 'merluza', 'gambas', 'bacalao', 'sardina'],
+    dairy: ['yogur', 'skyr', 'quesofresco', 'queso', 'leche', 'mozzarella', 'feta', 'requeson', 'kefir'], egg: ['huevo'],
+    gluten: ['pasta', 'pan', 'wrap', 'avena', 'cuscus', 'pita'], nuts: ['cacahuete', 'frutossecos', 'almendras', 'nueces']
+};
+const PROT_KEYS = ['pollo', 'ternera', 'salmon', 'merluza', 'pavo', 'cerdo', 'gambas', 'bacalao', 'sardina'];
+const DIET_TYPES = { omni: 'Como de todo', pesc: 'Sin carne (sí pescado)', veg: 'Vegetariana', vegan: 'Vegana' };
+const getDiet = () => ({ type: 'omni', lactose: false, gluten: false, nuts: false, ...safeParse('dreamfit_diet', {}) });
+function dietBlocked(diet = getDiet()) {
+    const b = [];
+    if (diet.type !== 'omni') b.push('meat');
+    if (diet.type === 'veg' || diet.type === 'vegan') b.push('fish');
+    if (diet.type === 'vegan') b.push('egg', 'dairy');
+    if (diet.lactose) b.push('dairy');
+    if (diet.gluten) b.push('gluten');
+    if (diet.nuts) b.push('nuts');
+    return b;
+}
+function dishAllowed(d, diet = getDiet()) { const bl = dietBlocked(diet); return !d.i.some(([k]) => bl.some(t => FOOD_TAGS[t].includes(k))); }
+function dietText(diet = getDiet()) { // para la IA
+    return [diet.type === 'pesc' ? 'No como carne (sí pescado)' : diet.type === 'veg' ? 'Dieta vegetariana' : diet.type === 'vegan' ? 'Dieta vegana' : '', diet.lactose ? 'Sin lactosa' : '', diet.gluten ? 'Sin gluten' : '', diet.nuts ? 'Alergia a frutos secos' : ''].filter(Boolean).join('. ');
+}
 const SHOP_CATS = { carne: ['🥩', 'Carne y pescado'], lacteos: ['🥛', 'Huevos y lácteos'], fruta_verdura: ['🥦', 'Fruta y verdura'], despensa: ['🥫', 'Despensa'], otros: ['🛒', 'Otros'] };
 
 // Platos: i = [alimento, gramos por ración base]. Se escalan para clavar las calorías de esa comida.
@@ -76,7 +127,58 @@ const DISHES = [
     { id: 'd4', m: 'dinner', n: 'Crema de calabacín con atún y tostada', i: [['calabacin', 300], ['patata', 100], ['atun', 80], ['pan', 40], ['aceite', 8]], s: ['Cuece calabacín y patata y tritúralos.', 'Sirve con el atún por encima y la tostada.'] },
     { id: 'd5', m: 'dinner', n: 'Pavo salteado con verduras y arroz', i: [['pavo', 160], ['arroz', 60], ['pimiento', 100], ['zanahoria', 60], ['aceite', 10]], s: ['Cuece el arroz.', 'Saltea el pavo en tiras con las verduras y mezcla.'] },
     { id: 'd6', m: 'dinner', n: 'Ensalada completa de legumbres y atún', i: [['legumbre', 200], ['atun', 80], ['tomate', 120], ['ensalada', 80], ['cebolla', 20], ['huevo', 60], ['aceite', 12]], s: ['Mezcla todo y aliña con el aceite.'] },
-    { id: 'd7', m: 'dinner', n: 'Merluza con verduras salteadas y patata', i: [['merluza', 200], ['calabacin', 150], ['patata', 150], ['champi', 80], ['aceite', 12]], s: ['Cuece la patata.', 'Saltea las verduras y haz la merluza a la plancha.'] }
+    { id: 'd7', m: 'dinner', n: 'Merluza con verduras salteadas y patata', i: [['merluza', 200], ['calabacin', 150], ['patata', 150], ['champi', 80], ['aceite', 12]], s: ['Cuece la patata.', 'Saltea las verduras y haz la merluza a la plancha.'] }    ,
+    // más media mañana
+    { id: 'm7', m: 'morn', n: 'Tostada de aguacate y huevo', i: [['pan', 60], ['aguacate', 60], ['huevo', 60], ['tomate', 40]], s: ['Tuesta el pan y chafa el aguacate encima.', 'Añade el huevo cocido en rodajas y el tomate.'] },
+    { id: 'm8', m: 'morn', n: 'Bol de kéfir con avena, kiwi y chía', i: [['kefir', 200], ['avena', 30], ['kiwi', 80], ['chia', 8]], s: ['Mezcla el kéfir con la avena y la chía.', 'Añade el kiwi en trozos.'] },
+    { id: 'm9', m: 'morn', n: 'Tortitas de arroz con hummus y pepino', i: [['tortitas', 36], ['hummus', 60], ['pepino', 80]], s: ['Unta el hummus sobre las tortitas y cubre con pepino en rodajas.'] },
+    { id: 'm10', m: 'morn', n: 'Requesón con pera y nueces', i: [['requeson', 150], ['pera', 130], ['nueces', 15]], s: ['Sirve el requesón con la pera en dados y las nueces troceadas.'] },
+    { id: 'm11', m: 'morn', n: 'Pita con queso fresco y jamón', i: [['pita', 60], ['quesofresco', 60], ['jamon', 40], ['tomate', 40]], s: ['Abre la pita, unta el queso y añade jamón y tomate.'] },
+    { id: 'm12', m: 'morn', n: 'Tostada de hummus y tomate', i: [['pan', 60], ['hummus', 50], ['tomate', 70], ['aceite', 3]], s: ['Tuesta el pan, unta el hummus y cubre con el tomate en rodajas y un hilo de aceite.'] },
+    { id: 'm13', m: 'morn', n: 'Bol de soja con avena, frutos rojos y almendras', i: [['soja', 200], ['avena', 35], ['frutosrojos', 100], ['almendras', 15]], s: ['Calienta o enfría la bebida de soja con la avena 5 min.', 'Añade la fruta y las almendras.'] },
+    { id: 'm14', m: 'morn', n: 'Huevos cocidos con naranja y pan', i: [['huevo', 120], ['naranja', 150], ['pan', 40]], s: ['Cuece los huevos 10 min.', 'Sirve con la naranja y el pan.'] },
+    // más comidas
+    { id: 'l8', m: 'lunch', n: 'Pollo al yogur con arroz', i: [['pollo', 150], ['arroz', 80], ['cebolla', 40], ['pimiento', 60], ['yogur', 60], ['aceite', 8]], s: ['Marina el pollo en dados con yogur y especias.', 'Saltéalo con cebolla y pimiento y sírvelo con el arroz cocido.'] },
+    { id: 'l9', m: 'lunch', n: 'Garbanzos con espinacas y huevo', i: [['garbanzo', 300], ['espinacas', 120], ['huevo', 60], ['cebolla', 30], ['aceite', 8]], s: ['Pocha la cebolla, añade las espinacas y los garbanzos escurridos.', 'Cuece 8 min y sirve con el huevo cocido.'] },
+    { id: 'l10', m: 'lunch', n: 'Quinoa con pollo y verduras', i: [['quinoa', 70], ['pollo', 150], ['calabacin', 100], ['pimiento', 60], ['aceite', 10]], s: ['Cuece la quinoa 15 min.', 'Saltea el pollo con las verduras y mézclalo con la quinoa.'] },
+    { id: 'l11', m: 'lunch', n: 'Cuscús con gambas y verduras', i: [['cuscus', 80], ['gambas', 150], ['calabacin', 100], ['pimiento', 60], ['aceite', 10]], s: ['Hidrata el cuscús con agua caliente 5 min.', 'Saltea las gambas con las verduras y mezcla.'] },
+    { id: 'l12', m: 'lunch', n: 'Lomo de cerdo con patata y judías verdes', i: [['cerdo', 150], ['patata', 250], ['judias', 150], ['aceite', 10]], s: ['Cuece patata y judías.', 'Haz el lomo a la plancha y sirve junto.'] },
+    { id: 'l13', m: 'lunch', n: 'Bacalao con tomate y arroz', i: [['bacalao', 200], ['arroz', 80], ['tomate', 150], ['cebolla', 40], ['aceite', 10]], s: ['Haz un sofrito de cebolla y tomate.', 'Cuece el bacalao en la salsa 8 min y sirve con el arroz.'] },
+    { id: 'l14', m: 'lunch', n: 'Tofu salteado con arroz y verduras', i: [['tofu', 180], ['arroz', 80], ['calabacin', 100], ['zanahoria', 60], ['pimiento', 60], ['aceite', 10]], s: ['Dora el tofu en dados.', 'Saltea las verduras, añade el tofu y sirve sobre el arroz cocido.'] },
+    { id: 'l15', m: 'lunch', n: 'Ensalada templada de quinoa, garbanzos y feta', i: [['quinoa', 60], ['garbanzo', 150], ['feta', 40], ['tomate', 100], ['pepino', 80], ['aceite', 10]], s: ['Cuece la quinoa y mézclala con los garbanzos, el tomate y el pepino.', 'Termina con el feta desmenuzado y el aceite.'] },
+    { id: 'l16', m: 'lunch', n: 'Pasta con berenjena, tomate y mozzarella', i: [['pasta', 90], ['berenjena', 120], ['tomate', 150], ['mozzarella', 60], ['aceite', 8]], s: ['Cuece la pasta.', 'Saltea la berenjena, añade el tomate y mezcla.', 'Remata con la mozzarella.'] },
+    { id: 'l17', m: 'lunch', n: 'Hamburguesa de ternera con boniato y ensalada', i: [['ternera', 160], ['boniato', 250], ['ensalada', 100], ['aceite', 8]], s: ['Hornea el boniato en gajos.', 'Haz la hamburguesa a la plancha y sirve con ensalada.'] },
+    { id: 'l18', m: 'lunch', n: 'Lentejas con arroz y verduras', i: [['legumbre', 300], ['arroz', 60], ['zanahoria', 80], ['cebolla', 40], ['aceite', 8]], s: ['Pocha cebolla y zanahoria.', 'Añade lentejas y arroz con agua y cuece 15 min.'] },
+    // más meriendas
+    { id: 's7', m: 'snack', n: 'Hummus con zanahoria y pepino', i: [['hummus', 80], ['zanahoria', 100], ['pepino', 80], ['tortitas', 18]], s: ['Corta las verduras en bastones y mójalas en el hummus.'] },
+    { id: 's8', m: 'snack', n: 'Requesón con kiwi y chía', i: [['requeson', 150], ['kiwi', 100], ['chia', 8], ['miel', 5]], s: ['Mezcla todo en un bol.'] },
+    { id: 's9', m: 'snack', n: 'Tortitas de arroz con cacahuete y plátano', i: [['tortitas', 27], ['cacahuete', 20], ['platano', 100]], s: ['Unta la crema sobre las tortitas y cubre con plátano en rodajas.'] },
+    { id: 's10', m: 'snack', n: 'Kéfir con uvas y almendras', i: [['kefir', 200], ['uvas', 100], ['almendras', 15]], s: ['Sirve el kéfir con las uvas y las almendras.'] },
+    { id: 's11', m: 'snack', n: 'Pera con queso fresco y nueces', i: [['pera', 170], ['quesofresco', 100], ['nueces', 12]], s: ['Corta la pera y sírvela con el queso y las nueces.'] },
+    { id: 's12', m: 'snack', n: 'Batido de soja, plátano y cacahuete', i: [['soja', 250], ['platano', 120], ['cacahuete', 15]], s: ['Bate todo hasta que quede cremoso.'] },
+    { id: 's13', m: 'snack', n: 'Tostada de aguacate con atún', i: [['pan', 50], ['aguacate', 50], ['atun', 60]], s: ['Chafa el aguacate sobre el pan tostado y añade el atún escurrido.'] },
+    { id: 's14', m: 'snack', n: 'Chocolate negro con almendras y naranja', i: [['chocolate', 15], ['almendras', 20], ['naranja', 150]], s: ['Pela la naranja y sírvela con el chocolate y las almendras.'] },
+    // más cenas
+    { id: 'd8', m: 'dinner', n: 'Salmón con quinoa y brócoli', i: [['salmon', 140], ['quinoa', 60], ['calabacin', 150], ['aceite', 8]], s: ['Cuece la quinoa y el brócoli.', 'Haz el salmón a la plancha o al horno 10 min.'] },
+    { id: 'd9', m: 'dinner', n: 'Tortilla de calabacín con ensalada', i: [['huevo', 180], ['calabacin', 150], ['cebolla', 40], ['ensalada', 100], ['aceite', 8], ['pan', 30]], s: ['Pocha calabacín y cebolla.', 'Añade el huevo batido y cuaja.', 'Sirve con ensalada y pan.'] },
+    { id: 'd10', m: 'dinner', n: 'Gambas salteadas con champiñones y pan', i: [['gambas', 180], ['champi', 120], ['pan', 60], ['aceite', 10], ['ensalada', 60]], s: ['Saltea champiñones, añade las gambas 3 min.', 'Sirve con pan y ensalada.'] },
+    { id: 'd11', m: 'dinner', n: 'Crema de coliflor con jamón y huevo duro', i: [['coliflor', 300], ['patata', 100], ['huevo', 60], ['jamon', 30], ['pan', 40], ['aceite', 8]], s: ['Cuece coliflor y patata y tritura.', 'Sirve con el huevo cocido, el jamón en taquitos y el pan.'] },
+    { id: 'd12', m: 'dinner', n: 'Sardinas con tomate y patata', i: [['sardina', 120], ['patata', 200], ['tomate', 150], ['aceite', 8]], s: ['Cuece la patata en rodajas.', 'Sirve con el tomate aliñado y las sardinas escurridas.'] },
+    { id: 'd13', m: 'dinner', n: 'Berenjena rellena de pavo y queso', i: [['berenjena', 300], ['pavo', 150], ['tomate', 80], ['queso', 20], ['aceite', 8], ['pan', 40]], s: ['Hornea las berenjenas abiertas 20 min.', 'Rellénalas con pavo salteado y tomate, espolvorea queso y gratina.'] },
+    { id: 'd14', m: 'dinner', n: 'Garbanzos con espinacas y tomate sobre arroz', i: [['garbanzo', 250], ['espinacas', 120], ['tomate', 100], ['arroz', 60], ['aceite', 10]], s: ['Cuece el arroz.', 'Sofríe tomate, añade espinacas y garbanzos y sirve sobre el arroz.'] },
+    { id: 'd15', m: 'dinner', n: 'Tofu a la plancha con boniato y ensalada', i: [['tofu', 200], ['boniato', 200], ['ensalada', 100], ['aceite', 10]], s: ['Hornea el boniato.', 'Dora el tofu en láminas y sirve con ensalada.'] },
+    { id: 'd16', m: 'dinner', n: 'Pollo al horno con calabacín y cuscús', i: [['pollo', 170], ['calabacin', 150], ['cuscus', 60], ['aceite', 10]], s: ['Hornea pollo y calabacín 25 min a 200 ºC.', 'Hidrata el cuscús y sirve junto.'] },
+    { id: 'd17', m: 'dinner', n: 'Wrap de huevo, aguacate y espinacas', i: [['wrap', 120], ['huevo', 120], ['aguacate', 50], ['espinacas', 60]], s: ['Haz un revuelto con los huevos.', 'Rellena el wrap con el revuelto, el aguacate y las espinacas.'] },
+    { id: 'd18', m: 'dinner', n: 'Pizza rápida de pita con pavo y mozzarella', i: [['pita', 120], ['pavo', 60], ['mozzarella', 60], ['tomate', 80], ['champi', 50]], s: ['Cubre la pita con tomate, pavo, champiñones y mozzarella.', 'Hornea 8 min a 200 ºC.'] },
+    { id: 'd19', m: 'dinner', n: 'Ensalada de quinoa y garbanzos', i: [['quinoa', 60], ['garbanzo', 200], ['tomate', 100], ['pepino', 80], ['aceite', 12]], s: ['Mezcla la quinoa cocida con los garbanzos y las verduras en dados.', 'Aliña con el aceite.'] }
+    ,
+    { id: 'm15', m: 'morn', n: 'Tortilla de espinacas y jamón', i: [['huevo', 150], ['espinacas', 60], ['jamon', 30], ['aceite', 4], ['naranja', 150]], s: ['Saltea las espinacas con el jamón.', 'Añade el huevo batido y cuaja.', 'Sirve con la naranja.'] },
+    { id: 'm16', m: 'morn', n: 'Gachas de quinoa con soja y frutos rojos', i: [['quinoa', 40], ['soja', 200], ['frutosrojos', 100], ['chia', 8]], s: ['Cuece la quinoa en la bebida de soja 12 min.', 'Sirve con la fruta y la chía.'] },
+    { id: 'm17', m: 'morn', n: 'Tortitas de arroz con aguacate y tomate', i: [['tortitas', 36], ['aguacate', 70], ['tomate', 60]], s: ['Chafa el aguacate sobre las tortitas y añade el tomate.'] },
+    { id: 'm18', m: 'morn', n: 'Plátano con chía y bebida de soja', i: [['platano', 120], ['soja', 200], ['chia', 10], ['tortitas', 18]], s: ['Bate la soja con el plátano y la chía y acompaña con las tortitas.'] },
+    { id: 's15', m: 'snack', n: 'Plátano y tortitas de arroz con chía', i: [['platano', 120], ['tortitas', 27], ['chia', 8]], s: ['Sirve el plátano en rodajas sobre las tortitas con la chía.'] },
+    { id: 's16', m: 'snack', n: 'Huevo cocido con naranja', i: [['huevo', 120], ['naranja', 150], ['tortitas', 18]], s: ['Cuece los huevos 10 min y sírvelos con la naranja y las tortitas.'] },
+    { id: 's17', m: 'snack', n: 'Tortitas con atún, tomate y pepino', i: [['tortitas', 18], ['atun', 80], ['tomate', 80], ['pepino', 60]], s: ['Reparte el atún escurrido sobre las tortitas con tomate y pepino.'] }
 ];
 const MENU_MEALS = ['morn', 'lunch', 'snack', 'dinner'];
 const MENU_LABEL = { morn: 'Media mañana', lunch: 'Comida', snack: 'Merienda', dinner: 'Cena' };
@@ -97,19 +199,21 @@ const menuState = { picks: null, seed: 0, ai: null, busy: false, remaining: null
 function menuTargets() { const n = myNutrition(); return n ? { n, meals: n.meals } : null; }
 
 function rankedDishes(meal, T, exceptIds) {
-    return DISHES.filter(d => d.m === meal && !exceptIds.includes(d.id)).map(d => ({ d, cost: dishCost(d, T.meals[meal]) })).sort((a, b) => a.cost - b.cost);
+    const diet = getDiet();
+    return DISHES.filter(d => d.m === meal && !exceptIds.includes(d.id) && dishAllowed(d, diet)).map(d => ({ d, cost: dishCost(d, T.meals[meal]) })).sort((a, b) => a.cost - b.cost);
 }
 function planMenu(shuffle) {
     const T = menuTargets(); if (!T) return null;
-    const used = [], picks = {}, proteins = [];
+    const used = [], picks = {}, proteins = []; let ok = true;
     MENU_MEALS.forEach(meal => {
         let r = rankedDishes(meal, T, used);
-        if (meal === 'dinner') { const nr = r.filter(x => !x.d.i.some(([k]) => ['pollo', 'ternera', 'salmon', 'merluza', 'pavo'].includes(k) && proteins.includes(k))); if (nr.length) r = nr; } // no repetir la misma proteína en comida y cena
+        if (!r.length) { ok = false; return; }
+        if (meal === 'dinner') { const nr = r.filter(x => !x.d.i.some(([k]) => PROT_KEYS.includes(k) && proteins.includes(k))); if (nr.length) r = nr; } // no repetir la misma proteína en comida y cena
         const pool = r.slice(0, shuffle ? 4 : 1), pick = pool[Math.floor(Math.random() * pool.length)].d;
         picks[meal] = pick.id; used.push(pick.id);
-        pick.i.forEach(([k]) => { if (['pollo', 'ternera', 'salmon', 'merluza', 'pavo'].includes(k)) proteins.push(k); });
+        pick.i.forEach(([k]) => { if (PROT_KEYS.includes(k)) proteins.push(k); });
     });
-    return picks;
+    return ok ? picks : null;
 }
 function swapDish(meal) { // «otro plato»: con IA pide otro a la IA; si no, pasa al siguiente que mejor encaje y no esté ya en el menú
     const T = menuTargets(); if (!T || !menuState.picks) return;
@@ -118,7 +222,11 @@ function swapDish(meal) { // «otro plato»: con IA pide otro a la IA; si no, pa
     const r = rankedDishes(meal, T, inMenu.filter(x => x !== cur)).map(x => x.d.id), at = r.indexOf(cur);
     menuState.picks[meal] = r[(at + 1) % r.length]; renderMenuCard();
 }
-function buildMenu(shuffle) { if (!menuTargets()) return; menuState.ai = null; menuState.msg = ''; menuState.picks = planMenu(shuffle); renderMenuCard(); }
+function buildMenu(shuffle) {
+    if (!menuTargets()) return; menuState.ai = null; menuState.msg = ''; menuState.picks = planMenu(shuffle);
+    if (!menuState.picks) menuState.msg = 'Con tus preferencias de alimentación no tengo platos básicos suficientes para todas las comidas. Prueba a quitar alguna restricción o usa el menú con IA.';
+    renderMenuCard();
+}
 function getDish(id) { return DISHES.find(d => d.id === id); }
 const r5 = n => Math.round(n / 5) * 5;
 
@@ -136,7 +244,7 @@ function aiMenuPayload(only, avoid) {
     const meals = {}; MENU_MEALS.forEach(k => { meals[k] = { kcal: n.meals[k].kcal, protein_g: n.meals[k].protein, carbs_g: n.meals[k].carbs, fat_g: n.meals[k].fat }; });
     return {
         ingredients: (document.getElementById('user-ingredients') || { value: '' }).value.trim(),
-        restrictions: (document.getElementById('user-restrictions') || { value: '' }).value.trim(),
+        restrictions: [dietText(), (document.getElementById('user-restrictions') || { value: '' }).value.trim()].filter(Boolean).join('. '),
         day: { kcal: n.kcal, protein_g: n.protein, carbs_g: n.carbs, fat_g: n.fat, objective: p.goal },
         meals, only: only || undefined, avoid
     };
@@ -165,6 +273,18 @@ function menuView(meal, T) {
     return { title: d.n, tg, m, ingr: d.i.map(([key, g]) => `${escapeHtml(FOODS[key].n)} (${amountText(key, g * k)})`).join(', '), steps: d.s, ai: false };
 }
 
+function saveDiet() {
+    const g = id => document.getElementById(id), d = { type: g('diet-type').value, lactose: g('diet-lactose').checked, gluten: g('diet-gluten').checked, nuts: g('diet-nuts').checked };
+    DB.setItem('dreamfit_diet', JSON.stringify(d));
+    if (menuState.picks) buildMenu(false); else renderMenuCard(); // el menú se rehace con las nuevas preferencias
+}
+function dietPanel() {
+    const d = getDiet(), on = dietText(d), chk = (id, k, l) => `<label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" id="diet-${id}" ${d[k] ? 'checked' : ''} onchange="saveDiet()" class="w-4 h-4 accent-emerald-600"> ${l}</label>`;
+    return `<details class="bg-slate-50 border border-slate-100 rounded-xl"><summary class="p-2.5 text-xs font-semibold text-slate-700 cursor-pointer">🥗 Mi alimentación: ${on ? escapeHtml(on.replace(/\. /g, ' · ')) : 'sin restricciones'}</summary>
+        <div class="px-3 pb-3 space-y-2"><label class="block text-[11px] text-slate-500">Tipo de alimentación<select id="diet-type" onchange="saveDiet()" class="mt-1 w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">${Object.entries(DIET_TYPES).map(([k, l]) => `<option value="${k}" ${d.type === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        ${chk('lactose', 'lactose', 'Sin lactosa (evita lácteos)')}${chk('gluten', 'gluten', 'Sin gluten (evita pan, pasta, avena…)')}${chk('nuts', 'nuts', 'Alergia a frutos secos')}
+        <p class="text-[10px] text-slate-400">Se aplica al menú básico y se envía a la IA. Si tienes una alergia grave, revisa siempre los ingredientes.</p></div></details>`;
+}
 function renderMenuCard() {
     const el = document.getElementById('menu-card'); if (!el) return;
     const head = `<h2 class="font-bold text-base text-slate-900 flex items-center gap-2"><i class="fa-solid fa-utensils text-emerald-600" aria-hidden="true"></i> Tu menú del día a medida</h2>`;
@@ -174,7 +294,7 @@ function renderMenuCard() {
     const err = menuState.msg ? `<p role="alert" class="text-xs text-red-600">${escapeHtml(menuState.msg)}</p>` : '';
     if (menuState.busy) { el.innerHTML = head + `<p class="text-xs text-slate-500" role="status"><i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i> La IA está montando tu menú… puede tardar hasta un minuto.</p>`; return; }
     if (!menuState.picks) {
-        el.innerHTML = head + `<p class="text-xs text-slate-500">Armo las 4 comidas del día para que cuadren con tu objetivo (<b>${fmtN(n.kcal)} kcal · ${n.protein} g de proteína · ${n.carbs} g de hidratos · ${n.fat} g de grasas</b>) y te preparo la lista de la compra con lo que te falte.</p>${err}
+        el.innerHTML = head + dietPanel() + `<p class="text-xs text-slate-500">Armo las 4 comidas del día para que cuadren con tu objetivo (<b>${fmtN(n.kcal)} kcal · ${n.protein} g de proteína · ${n.carbs} g de hidratos · ${n.fat} g de grasas</b>) y te preparo la lista de la compra con lo que te falte.</p>${err}
             <button onclick="setRecSection('ideas')" class="w-full text-[11px] text-emerald-700 font-semibold underline cursor-pointer">¿Qué tienes en casa o qué no puedes comer? Indícalo en «Ideas»</button>
             ${aiOn ? `<button onclick="buildAiMenu()" class="w-full bg-amber-300 hover:bg-amber-200 text-slate-950 font-bold py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-2"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Armar mi menú con IA</button>` : ''}
             <button onclick="buildMenu(false)" class="w-full ${aiOn ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'} font-bold py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-2">${aiOn ? 'Menú básico (sin IA)' : '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Armar mi menú'}</button>
@@ -196,7 +316,7 @@ function renderMenuCard() {
             <button onclick="useMenuDish('${meal}')" class="flex-1 text-xs bg-emerald-600 text-white font-semibold py-2 rounded-lg cursor-pointer">Usar en diario</button></div></div>`;
     }).join('');
     const bar = (v, t, l, u) => { const p = menuPct(v, t); return `<div class="text-center"><p class="text-sm font-bold text-slate-900 leading-tight">${Math.round(v)}${u}</p><p class="text-[10px] text-slate-500">${l} · obj. ${t}${u}</p><div class="h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden"><div class="h-full ${p > 110 ? 'bg-amber-400' : 'bg-emerald-500'}" style="width:${Math.min(100, p)}%"></div></div><p class="text-[10px] text-slate-400">${p}%</p></div>`; };
-    el.innerHTML = head + `${err}<div class="grid grid-cols-4 gap-2 bg-white rounded-xl border border-slate-100 p-2">${bar(tot.kcal, n.kcal, 'kcal', '')}${bar(tot.p, n.protein, 'prot.', ' g')}${bar(tot.c, n.carbs, 'hidr.', ' g')}${bar(tot.f, n.fat, 'grasas', ' g')}</div>
+    el.innerHTML = head + dietPanel() + `${err}<div class="grid grid-cols-4 gap-2 bg-white rounded-xl border border-slate-100 p-2">${bar(tot.kcal, n.kcal, 'kcal', '')}${bar(tot.p, n.protein, 'prot.', ' g')}${bar(tot.c, n.carbs, 'hidr.', ' g')}${bar(tot.f, n.fat, 'grasas', ' g')}</div>
         ${blocks}
         <div class="flex gap-2">${aiOn ? `<button onclick="buildAiMenu()" class="flex-1 text-xs bg-amber-300 text-slate-950 font-bold py-2.5 rounded-xl cursor-pointer"><i class="fa-solid fa-wand-magic-sparkles mr-1" aria-hidden="true"></i>Otro menú con IA</button>` : ''}<button onclick="buildMenu(true)" class="flex-1 text-xs bg-slate-100 text-slate-700 font-semibold py-2.5 rounded-xl cursor-pointer">${aiOn ? 'Menú básico' : 'Otro menú'}</button></div>
         <button onclick="menuToShopping()" class="w-full text-xs bg-emerald-600 text-white font-bold py-2.5 rounded-xl cursor-pointer"><i class="fa-solid fa-cart-shopping mr-1" aria-hidden="true"></i>Crear lista de la compra</button>
