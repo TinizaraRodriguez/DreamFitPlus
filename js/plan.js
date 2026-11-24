@@ -88,7 +88,7 @@ function planRoutines(p = eff()) {
         const [name, tech, w, q] = ROLES[role][p.place];
         const base = (p.place === 'home' ? w * (p.level === 'adv' ? 1.5 : p.level === 'mid' ? 1.25 : 1) : w * LEVELS[p.level].f) * bf;
         const vid = (EXERCISE_VIDEOS[role] || {})[p.place], info = EXERCISE_INFO[role] || {};
-        return { name, tech, role, muscles: { p: info.p || [], s: info.s || [] }, err: info.err || '', videoUrl: vid ? 'https://www.youtube.com/watch?v=' + vid : yt(q), moreUrl: yt(q), defaultWeight: Math.max(step, Math.round(base / step) * step) };
+        return { name, tech, role, place: p.place, muscles: { p: info.p || [], s: info.s || [] }, err: info.err || '', videoUrl: vid ? 'https://www.youtube.com/watch?v=' + vid : yt(q), moreUrl: yt(q), defaultWeight: Math.max(step, Math.round(base / step) * step) };
     }));
 }
 
