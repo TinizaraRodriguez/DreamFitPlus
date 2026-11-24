@@ -60,9 +60,11 @@ function wkFinish() {
     const i = wk.idx, ok = wk.sets[i].filter(s => s.ok);
     if (!ok.length) { showToast('Marca al menos una serie.'); return; }
     const w = Math.max(...ok.map(s => s.w)), r = wkVerdict();
+    const prev = exerciseStats(wk.machines[i].name), pr = !!prev && w > prev.best.weight; // récord: supera tu mejor peso anterior
     commitMachine(i, w, r, ok.map(s => ({ w: s.w, reps: s.reps })));
     wk.done[i] = true;
-    wk.summary[i] = { w, r, next: suggestWeight(wk.machines[i]) };
+    wk.summary[i] = { w, r, pr, next: suggestWeight(wk.machines[i]) };
+    if (pr) showToast('🏆 ¡Nuevo récord en ' + wk.machines[i].name + '!');
     if (wk.done.every(Boolean)) { wkStopRest(); renderWorkout(); } // rutina completa
     else { wkRest(wk.sc.rest); renderWorkout('next'); }
 }
@@ -157,7 +159,7 @@ function renderWorkout(focus) {
                 <button data-wk="check:${k}" onclick="wkMark(${k})" ${isDone ? 'disabled' : ''} aria-pressed="${s.ok}" aria-label="${s.ok ? 'Deshacer' : 'Marcar como hecha'} la serie ${k + 1}" class="w-11 h-11 shrink-0 rounded-xl text-lg font-bold cursor-pointer ${s.ok ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 hover:bg-emerald-100'} disabled:opacity-60"><i class="fa-solid fa-check" aria-hidden="true"></i></button>
             </div>`).join('');
         const anyOk = sets.some(s => s.ok);
-        const summary = sm ? `<div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-3 rounded-xl space-y-1"><p>✅ Guardado: ${sm.w} kg · ${resultTxt(sm.r)}</p><p class="font-normal">Próxima vez: ${sm.next.w} kg. ${sm.next.why}</p></div>
+        const summary = sm ? `<div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-3 rounded-xl space-y-1"><p>✅ Guardado: ${sm.w} kg · ${resultTxt(sm.r)}</p>${sm.pr ? '<p class="text-amber-700">🏆 ¡Nuevo récord personal!</p>' : ''}<p class="font-normal">Próxima vez: ${sm.next.w} kg. ${sm.next.why}</p></div>
             <button onclick="wkNext()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Siguiente ejercicio <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></button>`
             : isDone ? `<div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-3 rounded-xl">✅ Este ejercicio ya está guardado hoy.</div>`
             : `<div class="flex gap-2"><button onclick="wkAddSet()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer">+ Añadir serie</button>${anyOk ? `<button onclick="wkFinish()" class="flex-1 bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Terminar ejercicio</button>` : ''}</div>`;
@@ -167,6 +169,7 @@ function renderWorkout(focus) {
                 <h3 class="font-bold text-xl text-slate-900 leading-tight">${escapeHtml(m.name)}</h3>
                 <p class="text-xs text-slate-600"><b>${sc.sets} series × ${sc.reps} repeticiones</b> · descanso ${sc.restLabel}</p>
             </div>
+            ${lastTimeCard(m)}
             <div class="bg-white border border-slate-100 rounded-2xl p-4 space-y-2.5"><h4 class="text-xs font-bold text-slate-900">Cómo se hace</h4>${typeof techniqueAnim === 'function' && m.role ? techniqueAnim(m.role, m.place || 'gym', m.muscles) : ''}${typeof exerciseFigure === 'function' ? exerciseFigure(m.muscles) : ''}<p class="text-xs text-slate-600">${escapeHtml(m.tech)}</p>${m.err ? `<p class="text-[11px] text-red-700 bg-red-50 p-2 rounded-lg">⚠️ Error típico: ${escapeHtml(m.err)}</p>` : ''}<a href="${escapeHtml(m.videoUrl)}" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 font-bold text-xs py-2.5 rounded-xl"><i class="fa-solid fa-play" aria-hidden="true"></i> Ver vídeo del ejercicio</a>${m.moreUrl ? `<a href="${escapeHtml(m.moreUrl)}" target="_blank" rel="noopener" class="block text-center text-[11px] text-slate-500 underline">Ver más vídeos</a>` : ''}</div>
             ${isDone ? '' : `<p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg">💡 ${sug.why}</p>`}
             <div class="space-y-2" role="group" aria-label="Series">${rows}</div>

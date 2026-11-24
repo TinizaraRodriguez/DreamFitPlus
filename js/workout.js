@@ -107,6 +107,27 @@ function renderEntrenoPanel() {
 }
 
 // ---- PESAS ----
+// Historial de un ejercicio: última sesión, mejor peso (récord) y puntos para la mini gráfica
+function exerciseStats(name) {
+    const h = getStrength()[name] || [];
+    if (!h.length) return null;
+    const best = h.reduce((b, e) => e.weight > b.weight ? e : b, h[0]);
+    return { last: h[0], best, n: h.length, pts: h.slice(0, 8).reverse().map(e => e.weight) };
+}
+function sparkline(vals) {
+    if (vals.length < 2) return '';
+    const lo = Math.min(...vals), hi = Math.max(...vals), W = 96, H = 26, rng = hi - lo || 1;
+    const pts = vals.map((v, i) => [Math.round(i / (vals.length - 1) * W * 10) / 10, Math.round((H - 3 - (v - lo) / rng * (H - 6)) * 10) / 10]);
+    const l = pts[pts.length - 1];
+    return `<svg viewBox="0 0 ${W} ${H}" class="w-24 h-7" role="img" aria-label="Evolución del peso: ${vals.map(fmtW).join(', ')} kg"><polyline points="${pts.map(q => q.join(',')).join(' ')}" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${l[0]}" cy="${l[1]}" r="2.6" fill="#059669"/></svg>`;
+}
+function lastTimeCard(m) {
+    const st = exerciseStats(m.name);
+    if (!st) return `<p class="text-[11px] text-slate-500 bg-slate-50 rounded-xl p-2.5">Primera vez con este ejercicio: apunta tus series y la próxima te mostraré tu última marca.</p>`;
+    const reps = st.last.sets ? st.last.sets.map(x => x.reps).join('/') : '';
+    const when = st.last.date === getTodayKey() ? 'hoy' : st.last.date;
+    return `<div class="flex items-center justify-between gap-3 bg-slate-50 rounded-xl p-2.5"><div class="text-[11px] text-slate-600 space-y-0.5"><p>Última vez (${when}): <b class="text-slate-900">${fmtW(st.last.weight)} kg${reps ? ' · ' + reps + ' rep' : ''}</b></p><p>🏆 Tu récord: <b class="text-slate-900">${fmtW(st.best.weight)} kg</b>${st.n > 1 ? ' · ' + st.n + ' sesiones' : ''}</p></div>${sparkline(st.pts)}</div>`;
+}
 function suggestWeight(m) {
     const last = (getStrength()[m.name] || [])[0];
     const step = eff().place === 'home' ? 2 : 2.5;

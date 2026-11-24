@@ -154,7 +154,7 @@ function renderStrengthProgress() {
     const pts = data[cur].slice().reverse().map(e => ({ x: dateFromKey(e.date).getTime(), y: e.weight }));
     const d = pts[pts.length - 1].y - pts[0].y;
     box.innerHTML = lineChart([{ name: cur, color: '#059669', points: pts }], ' kg', true) +
-        `<p class="text-[11px] text-slate-600">${pts.length} sesiones · ${trim1(pts[0].y)} → ${trim1(pts[pts.length - 1].y)} kg <b class="text-emerald-700">(${d >= 0 ? '+' : ''}${trim1(d)})</b></p>`;
+        `<p class="text-[11px] text-slate-600">${pts.length} sesiones · ${trim1(pts[0].y)} → ${trim1(pts[pts.length - 1].y)} kg <b class="text-emerald-700">(${d >= 0 ? '+' : ''}${trim1(d)})</b> · 🏆 Récord: <b>${trim1(Math.max(...data[cur].map(e => e.weight)))} kg</b></p>`;
 }
 
 // ---------- Running ----------
