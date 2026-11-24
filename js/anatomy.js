@@ -42,7 +42,7 @@ function exerciseFigure(info) {
     if (!info) return '';
     const P = info.p || [], S = (info.s || []).filter(x => !P.includes(x));
     const names = n => n.map(x => MUSCLE_NAMES[x]).filter(Boolean).join(', ');
-    return `<div class="flex items-center justify-center gap-2 bg-slate-50 rounded-xl py-3" role="img" aria-label="Músculos que trabaja: ${names(P)}">${bodySvg('f', P, S)}${bodySvg('b', P, S)}</div>
+    return `<div class="df-fig flex items-center justify-center gap-2 bg-slate-50 rounded-xl py-3" role="img" aria-label="Músculos que trabaja: ${names(P)}">${bodySvg('f', P, S)}${bodySvg('b', P, S)}</div>
         <p class="text-xs text-slate-600"><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle"></span> <b>${names(P)}</b>${S.length ? ` · <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-300 align-middle"></span> ${names(S)}` : ''}</p>`;
 }
 // músculos y error típico por rol; vídeos (ID de YouTube) por rol y lugar
