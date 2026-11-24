@@ -5,8 +5,9 @@ Views.addTab({
     icon: 'fa-utensils',
     nav: true,   // false = no aparece en la barra inferior
     html: `
-<div id="rec-nav" role="tablist" aria-label="Secciones de recetas" class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl text-[11px] font-bold">
+<div id="rec-nav" role="tablist" aria-label="Secciones de recetas" class="grid grid-cols-5 gap-1 bg-slate-100 p-1 rounded-2xl text-[11px] font-bold">
     <button role="tab" id="rec-t-menu" onclick="setRecSection('menu')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-utensils block text-sm mb-0.5" aria-hidden="true"></i>Menú</button>
+    <button role="tab" id="rec-t-semana" onclick="setRecSection('semana')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-calendar-week block text-sm mb-0.5" aria-hidden="true"></i>Semana</button>
     <button role="tab" id="rec-t-ideas" onclick="setRecSection('ideas')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-wand-magic-sparkles block text-sm mb-0.5" aria-hidden="true"></i>Ideas</button>
     <button role="tab" id="rec-t-compra" onclick="setRecSection('compra')" class="py-2 rounded-xl cursor-pointer relative"><i class="fa-solid fa-cart-shopping block text-sm mb-0.5" aria-hidden="true"></i>Compra<span id="rec-badge" class="hidden absolute top-0.5 right-2 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-emerald-600 text-white text-[10px] leading-[1.1rem]"></span></button>
     <button role="tab" id="rec-t-guardadas" onclick="setRecSection('guardadas')" class="py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-bowl-food block text-sm mb-0.5" aria-hidden="true"></i>Guardadas</button>
@@ -17,6 +18,10 @@ Views.addTab({
 
 <div id="menu-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
 
+</div>
+
+<div data-rsec="semana" class="space-y-6 hidden">
+<div id="week-card" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3"></div>
 </div>
 
 <div data-rsec="compra" class="space-y-6 hidden">

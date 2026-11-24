@@ -69,7 +69,11 @@ const FOODS = {
     naranja:    { n: 'Naranja', c: 'fruta_verdura', k: 'fruta', e: [47, 0.9, 12, 0.1], u: [150, 'naranja', 'naranjas'] },
     pera:       { n: 'Pera', c: 'fruta_verdura', k: 'fruta', e: [57, 0.4, 15, 0.1], u: [170, 'pera', 'peras'] },
     kiwi:       { n: 'Kiwi', c: 'fruta_verdura', k: 'fruta', e: [61, 1.1, 15, 0.5], u: [75, 'kiwi', 'kiwis'] },
-    uvas:       { n: 'Uvas', c: 'fruta_verdura', k: 'fruta', e: [69, 0.7, 18, 0.2] }
+    uvas:       { n: 'Uvas', c: 'fruta_verdura', k: 'fruta', e: [69, 0.7, 18, 0.2] },
+    tortillamaiz:{ n: 'Tortillas de maíz', c: 'despensa', k: 'wrap', e: [218, 5.7, 44, 2.9], u: [30, 'tortilla', 'tortillas'] },
+    frijoles:   { n: 'Frijoles negros cocidos (bote)', c: 'despensa', k: 'legumbre', e: [132, 8.9, 23, 0.5] },
+    fideos:     { n: 'Fideos de arroz', c: 'despensa', k: 'macarron', e: [360, 6, 80, 0.6] },
+    maiz:       { n: 'Maíz dulce (lata)', c: 'despensa', k: 'maiz', e: [86, 3.3, 19, 1.2] }
 };
 // etiquetas para filtrar por tipo de alimentación, alergias e intolerancias
 const FOOD_TAGS = {
@@ -77,9 +81,10 @@ const FOOD_TAGS = {
     dairy: ['yogur', 'skyr', 'quesofresco', 'queso', 'leche', 'mozzarella', 'feta', 'requeson', 'kefir'], egg: ['huevo'],
     gluten: ['pasta', 'pan', 'wrap', 'avena', 'cuscus', 'pita'], nuts: ['cacahuete', 'frutossecos', 'almendras', 'nueces']
 };
+const CUISINES = { esp: 'Española / mediterránea', ita: 'Italiana', asi: 'Asiática', mex: 'Mexicana', ind: 'India', gre: 'Griega' };
 const PROT_KEYS = ['pollo', 'ternera', 'salmon', 'merluza', 'pavo', 'cerdo', 'gambas', 'bacalao', 'sardina'];
 const DIET_TYPES = { omni: 'Como de todo', pesc: 'Sin carne (sí pescado)', veg: 'Vegetariana', vegan: 'Vegana' };
-const getDiet = () => ({ type: 'omni', lactose: false, gluten: false, nuts: false, ...safeParse('dreamfit_diet', {}) });
+const getDiet = () => ({ type: 'omni', lactose: false, gluten: false, nuts: false, cuisines: [], ...safeParse('dreamfit_diet', {}) }); // cuisines: las que te apetecen (vacío = todas por igual)
 function dietBlocked(diet = getDiet()) {
     const b = [];
     if (diet.type !== 'omni') b.push('meat');
@@ -92,7 +97,7 @@ function dietBlocked(diet = getDiet()) {
 }
 function dishAllowed(d, diet = getDiet()) { const bl = dietBlocked(diet); return !d.i.some(([k]) => bl.some(t => FOOD_TAGS[t].includes(k))); }
 function dietText(diet = getDiet()) { // para la IA
-    return [diet.type === 'pesc' ? 'No como carne (sí pescado)' : diet.type === 'veg' ? 'Dieta vegetariana' : diet.type === 'vegan' ? 'Dieta vegana' : '', diet.lactose ? 'Sin lactosa' : '', diet.gluten ? 'Sin gluten' : '', diet.nuts ? 'Alergia a frutos secos' : ''].filter(Boolean).join('. ');
+    return [diet.type === 'pesc' ? 'No como carne (sí pescado)' : diet.type === 'veg' ? 'Dieta vegetariana' : diet.type === 'vegan' ? 'Dieta vegana' : '', diet.lactose ? 'Sin lactosa' : '', diet.gluten ? 'Sin gluten' : '', diet.nuts ? 'Alergia a frutos secos' : '', (diet.cuisines || []).length ? 'Cocinas preferidas: ' + diet.cuisines.map(c => CUISINES[c]).filter(Boolean).join(', ') : ''].filter(Boolean).join('. ');
 }
 const SHOP_CATS = { carne: ['🥩', 'Carne y pescado'], lacteos: ['🥛', 'Huevos y lácteos'], fruta_verdura: ['🥦', 'Fruta y verdura'], despensa: ['🥫', 'Despensa'], otros: ['🛒', 'Otros'] };
 
@@ -179,6 +184,36 @@ const DISHES = [
     { id: 's15', m: 'snack', n: 'Plátano y tortitas de arroz con chía', i: [['platano', 120], ['tortitas', 27], ['chia', 8]], s: ['Sirve el plátano en rodajas sobre las tortitas con la chía.'] },
     { id: 's16', m: 'snack', n: 'Huevo cocido con naranja', i: [['huevo', 120], ['naranja', 150], ['tortitas', 18]], s: ['Cuece los huevos 10 min y sírvelos con la naranja y las tortitas.'] },
     { id: 's17', m: 'snack', n: 'Tortitas con atún, tomate y pepino', i: [['tortitas', 18], ['atun', 80], ['tomate', 80], ['pepino', 60]], s: ['Reparte el atún escurrido sobre las tortitas con tomate y pepino.'] }
+    ,
+    // ----- cocinas del mundo (q = cocina) -----
+    { id: 'l19', q: 'asi', m: 'lunch', n: 'Salteado asiático de pollo con fideos de arroz', i: [['fideos', 70], ['pollo', 140], ['pimiento', 80], ['zanahoria', 60], ['calabacin', 80], ['aceite', 10]], s: ['Cuece los fideos y escúrrelos.', 'Saltea el pollo en tiras con las verduras a fuego fuerte y mezcla con los fideos y un chorrito de salsa de soja.'] },
+    { id: 'l20', q: 'asi', m: 'lunch', n: 'Arroz frito con gambas y huevo', i: [['arroz', 80], ['gambas', 120], ['huevo', 60], ['zanahoria', 50], ['aceite', 10]], s: ['Usa arroz cocido frío.', 'Saltea gambas y zanahoria, añade el arroz y el huevo batido y mezcla 3 min.'] },
+    { id: 'l21', q: 'asi', m: 'lunch', n: 'Poke de atún con arroz y aguacate', i: [['arroz', 70], ['atun', 100], ['aguacate', 50], ['pepino', 60], ['zanahoria', 40]], s: ['Cuece el arroz y déjalo templar.', 'Monta el bol con atún, aguacate, pepino y zanahoria y aliña con soja y limón.'] },
+    { id: 'd20', q: 'asi', m: 'dinner', n: 'Salmón teriyaki ligero con arroz y brócoli', i: [['salmon', 140], ['arroz', 60], ['calabacin', 150], ['aceite', 5]], s: ['Marina el salmón con soja, jengibre y un toque de miel.', 'Hazlo a la plancha y sirve con el arroz y el brócoli al vapor.'] },
+    { id: 'd21', q: 'ind', m: 'dinner', n: 'Tofu al curry con espinacas y arroz', i: [['tofu', 180], ['espinacas', 100], ['arroz', 60], ['cebolla', 40], ['aceite', 8]], s: ['Dora el tofu en dados.', 'Pocha la cebolla con curry, añade espinacas y el tofu y sirve con el arroz.'] },
+    { id: 'd22', q: 'asi', m: 'dinner', n: 'Fideos de arroz con verduras y huevo', i: [['fideos', 70], ['huevo', 120], ['calabacin', 100], ['zanahoria', 60], ['pimiento', 60], ['aceite', 8]], s: ['Cuece los fideos.', 'Saltea las verduras, añade el huevo y los fideos y mezcla.'] },
+    { id: 'm19', q: 'asi', m: 'morn', n: 'Tamagoyaki (tortilla japonesa) con arroz', i: [['huevo', 120], ['arroz', 50], ['pepino', 60], ['aceite', 3]], s: ['Haz una tortilla fina enrollada con los huevos batidos.', 'Sirve con el arroz cocido y el pepino.'] },
+    { id: 's18', q: 'asi', m: 'snack', n: 'Bol de arroz con tofu y pepino', i: [['tofu', 100], ['arroz', 40], ['pepino', 80], ['zanahoria', 40]], s: ['Dora el tofu y mézclalo con el arroz frío y las verduras en dados.'] },
+    { id: 'l22', q: 'mex', m: 'lunch', n: 'Burrito bowl de pollo, arroz y frijoles', i: [['pollo', 140], ['arroz', 60], ['frijoles', 150], ['maiz', 50], ['aguacate', 40], ['tomate', 80]], s: ['Plancha el pollo en tiras con especias (comino, pimentón).', 'Monta el bol con arroz, frijoles, maíz, tomate y aguacate.'] },
+    { id: 'l23', q: 'mex', m: 'lunch', n: 'Tacos de ternera con aguacate y tomate', i: [['tortillamaiz', 90], ['ternera', 140], ['aguacate', 50], ['tomate', 80], ['cebolla', 30]], s: ['Saltea la ternera en tiras con cebolla.', 'Calienta las tortillas y rellena con ternera, aguacate y tomate.'] },
+    { id: 'd23', q: 'mex', m: 'dinner', n: 'Quesadilla de pollo y mozzarella', i: [['wrap', 100], ['pollo', 100], ['mozzarella', 50], ['pimiento', 60]], s: ['Rellena el wrap con pollo cocinado, pimiento y mozzarella.', 'Dóralo en sartén 2-3 min por lado.'] },
+    { id: 'd24', q: 'mex', m: 'dinner', n: 'Chili de frijoles y verduras con arroz', i: [['frijoles', 250], ['tomate', 150], ['pimiento', 80], ['cebolla', 40], ['maiz', 40], ['arroz', 50]], s: ['Sofríe cebolla y pimiento, añade tomate, frijoles y maíz.', 'Cuece 15 min con comino y pimentón y sirve con el arroz.'] },
+    { id: 'm20', q: 'mex', m: 'morn', n: 'Huevos rancheros ligeros', i: [['huevo', 120], ['tortillamaiz', 60], ['tomate', 100], ['frijoles', 60]], s: ['Haz una salsa rápida de tomate.', 'Pon los huevos a la plancha sobre las tortillas con frijoles y salsa.'] },
+    { id: 's19', q: 'mex', m: 'snack', n: 'Guacamole con crudités y tortitas', i: [['aguacate', 80], ['tomate', 40], ['zanahoria', 80], ['pepino', 60], ['tortitas', 18]], s: ['Chafa el aguacate con tomate picado, limón y sal.', 'Moja las verduras y las tortitas.'] },
+    { id: 'l24', q: 'ita', m: 'lunch', n: 'Pasta con pollo y espinacas', i: [['pasta', 90], ['pollo', 130], ['espinacas', 100], ['queso', 15], ['aceite', 10]], s: ['Cuece la pasta.', 'Saltea pollo y espinacas, mezcla con la pasta y termina con queso rallado.'] },
+    { id: 'l25', q: 'ita', m: 'lunch', n: 'Caprese con pavo y pan', i: [['mozzarella', 80], ['tomate', 200], ['pan', 60], ['pavo', 60], ['aceite', 10]], s: ['Corta tomate y mozzarella en rodajas y alterna con el pavo.', 'Aliña con aceite, sal y albahaca y sirve con el pan.'] },
+    { id: 'd25', q: 'ita', m: 'dinner', n: 'Berenjenas a la parmesana ligeras', i: [['berenjena', 300], ['tomate', 150], ['mozzarella', 70], ['aceite', 8], ['pan', 40]], s: ['Hornea las berenjenas en rodajas 15 min.', 'Alterna capas con tomate y mozzarella y gratina 10 min.'] },
+    { id: 'd26', q: 'ita', m: 'dinner', n: 'Risotto de champiñones y pollo', i: [['arroz', 70], ['champi', 150], ['pollo', 120], ['queso', 15], ['aceite', 8]], s: ['Dora el pollo con los champiñones.', 'Añade el arroz y caldo poco a poco 18 min; termina con queso.'] },
+    { id: 'm21', q: 'ita', m: 'morn', n: 'Bruschetta de tomate y mozzarella', i: [['pan', 60], ['tomate', 100], ['mozzarella', 50], ['aceite', 5]], s: ['Tuesta el pan, cubre con tomate y mozzarella y gratina 2 min.'] },
+    { id: 's20', q: 'ita', m: 'snack', n: 'Tostada de requesón con tomate', i: [['pan', 50], ['requeson', 100], ['tomate', 80]], s: ['Unta el requesón sobre el pan tostado y cubre con tomate.'] },
+    { id: 'l26', q: 'ind', m: 'lunch', n: 'Pollo tikka con arroz y yogur', i: [['pollo', 150], ['yogur', 80], ['arroz', 70], ['cebolla', 40], ['pepino', 40], ['aceite', 6]], s: ['Marina el pollo con yogur y especias (cúrcuma, comino, pimentón).', 'Hornéalo o plánchalo y sirve con arroz y pepino.'] },
+    { id: 'l27', q: 'ind', m: 'lunch', n: 'Dal de lentejas con arroz', i: [['legumbre', 300], ['arroz', 60], ['cebolla', 40], ['tomate', 80], ['aceite', 8]], s: ['Sofríe cebolla y tomate con cúrcuma y comino.', 'Añade las lentejas y cuece 10 min; sirve con el arroz.'] },
+    { id: 'd27', q: 'ind', m: 'dinner', n: 'Curry de garbanzos y coliflor', i: [['garbanzo', 250], ['coliflor', 150], ['tomate', 100], ['cebolla', 40], ['arroz', 50], ['aceite', 8]], s: ['Sofríe cebolla con curry, añade tomate, coliflor y garbanzos.', 'Cuece 15 min tapado y sirve con el arroz.'] },
+    { id: 's21', q: 'ind', m: 'snack', n: 'Raita de pepino con tortitas', i: [['yogur', 200], ['pepino', 100], ['tortitas', 18]], s: ['Mezcla el yogur con el pepino rallado, sal y menta.', 'Sírvelo con las tortitas.'] },
+    { id: 'l28', q: 'gre', m: 'lunch', n: 'Ensalada griega con pollo y pita', i: [['pollo', 140], ['feta', 40], ['tomate', 150], ['pepino', 100], ['pita', 50], ['aceite', 10]], s: ['Plancha el pollo.', 'Mezcla tomate, pepino y feta, aliña con aceite y orégano y sirve con la pita.'] },
+    { id: 'd28', q: 'gre', m: 'dinner', n: 'Souvlaki de pollo con pita y tzatziki', i: [['pollo', 140], ['pita', 80], ['tomate', 80], ['yogur', 60], ['pepino', 40], ['cebolla', 30]], s: ['Plancha el pollo en dados.', 'Mezcla yogur con pepino rallado para el tzatziki y rellena la pita.'] },
+    { id: 'm22', q: 'gre', m: 'morn', n: 'Yogur griego con nueces, naranja y miel', i: [['yogur', 200], ['nueces', 15], ['miel', 8], ['naranja', 100]], s: ['Sirve el yogur con nueces, naranja en gajos y un hilo de miel.'] },
+    { id: 's22', q: 'gre', m: 'snack', n: 'Pita con hummus y pepino', i: [['pita', 60], ['hummus', 50], ['pepino', 60], ['tomate', 40]], s: ['Rellena la pita con hummus, pepino y tomate.'] }
 ];
 const MENU_MEALS = ['morn', 'lunch', 'snack', 'dinner'];
 const MENU_LABEL = { morn: 'Media mañana', lunch: 'Comida', snack: 'Merienda', dinner: 'Cena' };
@@ -200,7 +235,7 @@ function menuTargets() { const n = myNutrition(); return n ? { n, meals: n.meals
 
 function rankedDishes(meal, T, exceptIds) {
     const diet = getDiet();
-    return DISHES.filter(d => d.m === meal && !exceptIds.includes(d.id) && dishAllowed(d, diet)).map(d => ({ d, cost: dishCost(d, T.meals[meal]) })).sort((a, b) => a.cost - b.cost);
+    return DISHES.filter(d => d.m === meal && !exceptIds.includes(d.id) && dishAllowed(d, diet)).map(d => ({ d, cost: dishCost(d, T.meals[meal]) * (diet.cuisines.length && diet.cuisines.includes(d.q || 'esp') ? 0.5 : 1) })).sort((a, b) => a.cost - b.cost);
 }
 function planMenu(shuffle) {
     const T = menuTargets(); if (!T) return null;
@@ -274,14 +309,16 @@ function menuView(meal, T) {
 }
 
 function saveDiet() {
-    const g = id => document.getElementById(id), d = { type: g('diet-type').value, lactose: g('diet-lactose').checked, gluten: g('diet-gluten').checked, nuts: g('diet-nuts').checked };
+    const g = id => document.getElementById(id), d = { type: g('diet-type').value, lactose: g('diet-lactose').checked, gluten: g('diet-gluten').checked, nuts: g('diet-nuts').checked, cuisines: [...document.querySelectorAll('[data-cuisine]:checked')].map(x => x.dataset.cuisine) };
     DB.setItem('dreamfit_diet', JSON.stringify(d));
+    if (typeof weekOnDietChange === 'function') weekOnDietChange();
     if (menuState.picks) buildMenu(false); else renderMenuCard(); // el menú se rehace con las nuevas preferencias
 }
 function dietPanel() {
     const d = getDiet(), on = dietText(d), chk = (id, k, l) => `<label class="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" id="diet-${id}" ${d[k] ? 'checked' : ''} onchange="saveDiet()" class="w-4 h-4 accent-emerald-600"> ${l}</label>`;
     return `<details class="bg-slate-50 border border-slate-100 rounded-xl"><summary class="p-2.5 text-xs font-semibold text-slate-700 cursor-pointer">🥗 Mi alimentación: ${on ? escapeHtml(on.replace(/\. /g, ' · ')) : 'sin restricciones'}</summary>
         <div class="px-3 pb-3 space-y-2"><label class="block text-[11px] text-slate-500">Tipo de alimentación<select id="diet-type" onchange="saveDiet()" class="mt-1 w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">${Object.entries(DIET_TYPES).map(([k, l]) => `<option value="${k}" ${d.type === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <fieldset><legend class="text-[11px] text-slate-500 mb-1">Cocinas que me apetecen (aparecen más)</legend><div class="flex flex-wrap gap-1.5">${Object.entries(CUISINES).map(([k, l]) => `<label class="text-[11px] px-2.5 py-1.5 rounded-full border cursor-pointer ${d.cuisines.includes(k) ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}"><input type="checkbox" class="sr-only" data-cuisine="${k}" ${d.cuisines.includes(k) ? 'checked' : ''} onchange="saveDiet()">${l}</label>`).join('')}</div></fieldset>
         ${chk('lactose', 'lactose', 'Sin lactosa (evita lácteos)')}${chk('gluten', 'gluten', 'Sin gluten (evita pan, pasta, avena…)')}${chk('nuts', 'nuts', 'Alergia a frutos secos')}
         <p class="text-[10px] text-slate-400">Se aplica al menú básico y se envía a la IA. Si tienes una alergia grave, revisa siempre los ingredientes.</p></div></details>`;
 }
@@ -330,7 +367,7 @@ function useMenuDish(meal) {
 }
 
 // ---------- Secciones de la pestaña Recetas (una a la vez, para no abrumar) ----------
-const REC_SECTIONS = ['menu', 'ideas', 'compra', 'guardadas'];
+const REC_SECTIONS = ['menu', 'semana', 'ideas', 'compra', 'guardadas'];
 let recSection = 'menu';
 function setRecSection(id, scroll = true) {
     if (!REC_SECTIONS.includes(id)) id = 'menu';
@@ -342,6 +379,7 @@ function setRecSection(id, scroll = true) {
         b.classList.toggle('bg-white', on); b.classList.toggle('shadow-sm', on); b.classList.toggle('text-emerald-700', on); b.classList.toggle('text-slate-500', !on);
         b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
+    if (id === 'semana' && typeof renderMealWeek === 'function') renderMealWeek();
     if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function updateRecBadge() {
@@ -369,15 +407,15 @@ function aiMenuItems() { // ingredientes del menú de la IA, juntando repetidos
     }); });
     return Object.values(by).map(x => ({ n: x.n, c: x.c, q: x.q.join(' + ') }));
 }
-function menuToShopping() {
-    if (menuState.ai) {
+function menuToShopping(overrideNeed) { // overrideNeed: alimentos de la semana (si no, los del menú del día)
+    if (menuState.ai && !overrideNeed) {
         const raw = (document.getElementById('user-ingredients') || { value: '' }).value, have = raw.trim() ? parseIngredients(raw).have : new Set();
         const items = aiMenuItems().filter(x => { const k = parseIngredients(x.n).have; return ![...k].some(y => have.has(y)); });
         saveShop([...getShop().filter(x => !x.key && !x.menu), ...items.map(x => ({ id: shopId(), n: x.n, q: x.q, c: x.c, menu: true, done: false }))]); renderShopCard();
         showToast('Lista de la compra creada'); setRecSection('compra');
         return;
     }
-    const need = menuNeeds(); if (!Object.keys(need).length) return;
+    const need = overrideNeed || menuNeeds(); if (!Object.keys(need).length) return;
     const raw = (document.getElementById('user-ingredients') || { value: '' }).value;
     const have = raw.trim() ? parseIngredients(raw).have : new Set();
     const old = getShop(), keep = old.filter(x => !x.key && !x.menu); // lo escrito a mano o de la IA se conserva; lo del menú anterior se sustituye
