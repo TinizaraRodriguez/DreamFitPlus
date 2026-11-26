@@ -135,6 +135,7 @@ function renderMealModal() {
     renderMealNut();
     document.getElementById('meal-modal-title').innerText = MEAL_FULL[mealModalKey];
     renderMealChips();
+    if (typeof foodsResetDraft === 'function') foodsResetDraft();
 }
 function saveMealModal() {
     let v = document.getElementById('meal-edit-input').value.trim();

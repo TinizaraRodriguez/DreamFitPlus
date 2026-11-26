@@ -1,7 +1,7 @@
 // Hoja para registrar una comida.
 Views.addModal('meal', `
 <div id="meal-modal" role="dialog" aria-modal="true" aria-labelledby="meal-modal-title" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-xl">
+    <div class="bg-white rounded-2xl p-5 max-w-sm w-full max-h-[92vh] overflow-y-auto space-y-3 shadow-xl">
         <div class="flex justify-between items-center">
             <h3 id="meal-modal-title" class="font-bold text-base text-slate-900">Comida</h3>
             <button aria-label="Cerrar" onclick="closeMealModal()" class="text-slate-500 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -11,6 +11,7 @@ Views.addModal('meal', `
             <label for="meal-edit-input" class="text-xs font-semibold text-slate-500">¿Qué has comido?</label>
             <input type="text" id="meal-edit-input" onkeydown="if(event.key==='Enter')saveMealModal()" placeholder="Ej: Pollo a la plancha + arroz integral" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
         </div>
+        <div id="food-panel" class="space-y-2"></div>
         <div id="meal-nut" class="space-y-2">
             <p class="text-[11px] font-semibold text-slate-500">Calorías aproximadas <span class="font-normal">(opcional)</span></p>
             <div id="meal-portions" class="grid grid-cols-3 gap-1.5"></div>

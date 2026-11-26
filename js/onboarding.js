@@ -4,7 +4,7 @@ let ob = null; // { first, goal, level, days, place }
 
 function openOnboarding(first) {
     const cur = getProfile();
-    ob = { first: !!first, goal: cur?.goal || null, level: cur?.level || null, days: cur?.days || 3, place: cur?.place || 'gym', sex: cur?.sex || null, age: cur?.age || null, height: cur?.height || null, weight: cur?.weight || null, activity: cur?.activity || null, prev: document.activeElement };
+    ob = { first: !!first, goal: cur?.goal || null, level: cur?.level || null, days: cur?.days || 3, place: cur?.place || 'gym', sex: cur?.sex || null, age: cur?.age || null, height: cur?.height || null, weight: cur?.weight || null, activity: cur?.activity || null, bf: cur?.bf || null, tdeeAdj: cur?.tdeeAdj, prev: document.activeElement };
     renderOnboarding();
     document.getElementById('ob-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -73,6 +73,7 @@ function renderOnboarding() {
         <div class="space-y-2"><h3 class="text-xs font-bold text-slate-700">5. Tus datos (para calcular tu metabolismo basal)</h3>
             <div role="radiogroup" aria-label="Sexo" class="flex gap-2">${sexes}</div>
             <div class="flex gap-2">${inp('age', 'Edad', 'años', 14, 90, 1)}${inp('height', 'Altura', 'cm', 120, 230, 1)}${inp('weight', 'Peso', 'kg', 30, 250, 0.1)}</div>
+            <div class="flex gap-2 items-end">${inp('bf', '% de grasa (opcional)', '%', 5, 60, 0.5)}<p class="flex-1 text-[10px] text-slate-500 leading-tight pb-2">Si lo conoces (báscula de bioimpedancia, medición…), el cálculo será más exacto. Si no, déjalo vacío.</p></div>
             <div role="radiogroup" aria-label="Actividad diaria" class="space-y-1.5"><p class="text-[11px] font-semibold text-slate-600">Tu día a día (sin contar el entreno)</p>${acts}</div>
             <p class="text-[10px] text-slate-400">Solo se guardan en tu cuenta para calcular tus números. Es una estimación orientativa.</p>
             <div id="ob-nutri" aria-live="polite" class="bg-amber-50/70 border border-amber-100 rounded-xl p-3">${obNutriHtml()}</div></div>

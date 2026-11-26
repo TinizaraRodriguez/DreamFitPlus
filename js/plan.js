@@ -125,6 +125,8 @@ function applyProfile(p) {
     getWeights(); // si venías de un perfil antiguo, guarda antes tu peso previo en el historial
     const prev = getProfile(), kcalAdj = p.kcalAdj !== undefined ? p.kcalAdj : (prev && prev.goal === p.goal ? prev.kcalAdj || 0 : 0); // cambiar de objetivo reinicia los ajustes
     const profile = { goal: p.goal, level: p.level, days: p.days, place: p.place, sex: p.sex, age: p.age, height: p.height, weight: p.weight, activity: p.activity, kcalAdj, ts: Date.now() };
+    if (bfOk(p.bf)) profile.bf = p.bf; // % de grasa opcional
+    const tdeeAdj = p.tdeeAdj !== undefined ? p.tdeeAdj : (prev && prev.tdeeAdj) || 0; if (tdeeAdj) profile.tdeeAdj = tdeeAdj;
     DB.setItem('dreamfit_profile', JSON.stringify(profile));
     if (profile.weight && (!getWeights().length || getWeights()[0].kg !== profile.weight)) recordWeight(profile.weight); // arranca (o continúa) el historial de peso
     const cats = getWorkoutCategories();

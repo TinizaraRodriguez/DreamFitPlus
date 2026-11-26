@@ -24,6 +24,8 @@ function privacyHtml() {
         ${li([
             '<b>Cuenta:</b> tu nombre, tu email y tu contraseña (la contraseña la gestiona el servicio de autenticación y se guarda cifrada; la app nunca la ve en claro). Si entras con Google, recibimos tu nombre y tu email.',
             '<b>Datos de salud y hábitos</b> que tú introduces: sexo, edad, altura, peso e historial de peso, medidas de cintura y cadera, nivel de actividad y objetivo.',
+            '<b>Datos opcionales:</b> tu % de grasa corporal si decides indicarlo.',
+            '<b>Alimentos que añades:</b> los datos nutricionales de los envases que escaneas (nombre, marca, valores por 100 g, ingredientes). Se guardan en un catálogo <b>compartido</b> con el resto de usuarios y no incluyen tu nombre ni se muestran asociados a ti. La foto del envase <b>no se guarda</b>.',
             '<b>Tu actividad:</b> entrenos, pesos y repeticiones, carreras, agua, comidas con calorías y proteína aproximadas, recetas guardadas, lista de la compra y marcas del calendario.'
         ])}
         <p>No pedimos ni guardamos dirección, teléfono, datos de pago ni ubicación, y no usamos publicidad ni analítica de seguimiento.</p>
@@ -43,7 +45,7 @@ function privacyHtml() {
         ${li([
             '<b>Supabase</b> (base de datos y autenticación): guarda tu cuenta y tus datos. Cada persona solo puede leer y modificar los suyos.',
             '<b>Cloudflare</b> (alojamiento de la web): recibe tu dirección IP y datos técnicos de la conexión al cargar la app.',
-            '<b>Google</b>, solo si eliges «Continuar con Google» (acceso) o la opción de recetas con IA (Gemini). Para la IA se envían únicamente los ingredientes, el momento de la comida, el sabor, lo que escribas en «alergias o restricciones» y un objetivo orientativo de calorías y proteína. <b>No se envía tu nombre ni tu email.</b> No escribas datos que te identifiquen en ese campo.',
+            '<b>Google</b>, solo si eliges «Continuar con Google» (acceso) o las opciones con IA (Gemini): recetas y lectura de fotos de envases (la foto se envía para leerla y no se conserva). Para la IA se envían únicamente los ingredientes, el momento de la comida, el sabor, lo que escribas en «alergias o restricciones» y un objetivo orientativo de calorías y proteína. <b>No se envía tu nombre ni tu email.</b> No escribas datos que te identifiquen en ese campo.',
             '<b>Librerías externas</b> (jsDelivr, cdnjs y Google Fonts): al abrir la app tu navegador las descarga y esos servicios pueden ver tu IP.',
             'Si algún proveedor trata datos fuera del Espacio Económico Europeo, lo hace con las garantías del RGPD (por ejemplo, cláusulas contractuales tipo).'
         ])}

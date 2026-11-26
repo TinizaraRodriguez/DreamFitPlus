@@ -22,6 +22,7 @@ const FOOD_TIPS = {
     health: 'Come variado y de temporada, prioriza alimentos poco procesados y no te saltes comidas.'
 };
 
+const bfOk = v => typeof v === 'number' && v >= 5 && v <= 60;
 const numOr = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; };
 const fmtN = n => Math.round(n).toLocaleString('es-ES');
 function bodyOk(p) {
@@ -31,9 +32,14 @@ function bodyOk(p) {
 function calcNutrition(p) {
     if (!bodyOk(p)) return null;
     const goal = GOALS[p.goal] ? p.goal : null, days = p.days || 3, notes = [];
-    const bmr = Math.round(10 * p.weight + 6.25 * p.height - 5 * p.age + (p.sex === 'm' ? 5 : p.sex === 'f' ? -161 : -78));
+    const bf = bfOk(p.bf) ? p.bf : null; // % de grasa (opcional): con él usamos Katch-McArdle, que tiene en cuenta tu masa magra
+    const method = bf ? 'katch' : 'mifflin';
+    const bmr = bf ? Math.round(370 + 21.6 * p.weight * (1 - bf / 100))
+        : Math.round(10 * p.weight + 6.25 * p.height - 5 * p.age + (p.sex === 'm' ? 5 : p.sex === 'f' ? -161 : -78));
     const factor = ACTIVITY[p.activity].f + 0.04 * days;           // vida diaria + días de entrenamiento
-    const tdee = Math.round(bmr * factor / 10) * 10;
+    const tdeeBase = Math.round(bmr * factor / 10) * 10;
+    const tdeeAdj = Math.max(-500, Math.min(500, Math.round(p.tdeeAdj || 0))); // corrección aprendida de tu peso y tus comidas reales
+    const tdee = Math.round((bmr * factor + tdeeAdj) / 10) * 10;
     let adj = goal ? KCAL_ADJUST[goal] : 0;
     if (p.age < 18 && adj < 0) { adj = 0; notes.push('Al ser menor de 18 años no aplicamos déficit de calorías: en crecimiento no es recomendable. Consúltalo con tu médico.'); }
     const tweak = Math.max(-300, Math.min(300, p.kcalAdj || 0)); // ajustes que aceptaste en «Ajuste del plan» (kcal/día)
@@ -47,9 +53,39 @@ function calcNutrition(p) {
     const glasses = Math.min(8, Math.max(3, Math.round(ml / 500))); // vaso grande ≈ 500 ml
     const meals = {};
     Object.entries(MEAL_SPLIT).forEach(([k, s]) => { meals[k] = { kcal: Math.round(kcal * s / 10) * 10, protein: Math.round(protein * s), carbs: Math.round(carbs * s), fat: Math.round(fat * s) }; });
-    return { bmr, tdee, kcal, adj, tweak, protein, fat, carbs, ml, glasses, meals, notes, factor };
+    return { bmr, method, bf, tdeeBase, tdeeAdj, tdee, kcal, adj, tweak, protein, fat, carbs, ml, glasses, meals, notes, factor };
 }
 const myNutrition = () => calcNutrition(getProfile());
+
+// ---- Gasto real aprendido: media de lo que comes + lo que cambia tu peso (7.700 kcal ≈ 1 kg de peso) ----
+function adaptiveTdee() {
+    const p = getProfile(), n = calcNutrition(p); if (!n) return null;
+    const from = shiftDays(-28), d = getDays();
+    const logged = Object.entries(d).filter(([k, v]) => k >= from && k <= getTodayKey() && (v.nutMeals || 0) >= 3 && v.kcal >= 800 && v.kcal <= 5000);
+    const tr = weightTrend(28);
+    if (logged.length < 10 || !tr || tr.span < 14 || tr.n < 3) return null;
+    const avg = logged.reduce((t, [, v]) => t + v.kcal, 0) / logged.length;
+    const est = Math.round((avg - tr.perWeek * 7700 / 7) / 10) * 10;
+    if (est < 1000 || est > 5000) return null;
+    const adj = Math.max(-500, Math.min(500, est - n.tdeeBase));
+    return { est, avg: Math.round(avg), days: logged.length, perWeek: tr.perWeek, base: n.tdeeBase, adj, current: n.tdeeAdj };
+}
+function adaptiveHtml() {
+    const a = adaptiveTdee(), n = myNutrition(); if (!n) return '';
+    if (!a) return n.tdeeAdj ? `<div class="bg-sky-50 border border-sky-100 rounded-xl p-3 space-y-1.5"><p class="text-[11px] text-sky-900">Tu mantenimiento está ajustado ${n.tdeeAdj > 0 ? '+' : '−'}${Math.abs(n.tdeeAdj)} kcal según tu progreso real.</p><button onclick="applyTdeeAdj(0)" class="text-[11px] font-bold text-sky-800 underline cursor-pointer">Volver a la estimación por fórmula</button></div>` : '';
+    const diff = a.adj - a.current, wk = String(trim1(a.perWeek)).replace('.', ',');
+    if (Math.abs(diff) < 60) return `<div class="bg-sky-50 border border-sky-100 rounded-xl p-3"><p class="text-[11px] text-sky-900">📈 Con tus últimos ${a.days} días registrados y tu peso (${a.perWeek > 0 ? '+' : ''}${wk} kg/semana), tu gasto real sale ≈ <b>${fmtN(a.est)} kcal</b>: coincide con tu cálculo.</p></div>`;
+    return `<div class="bg-sky-50 border border-sky-100 rounded-xl p-3 space-y-2"><p class="text-xs font-bold text-sky-900">📈 Tu gasto real parece ≈ ${fmtN(a.est)} kcal</p>
+        <p class="text-[11px] text-sky-900">Comes de media ≈ ${fmtN(a.avg)} kcal (${a.days} días apuntados) y tu peso cambia ${a.perWeek > 0 ? '+' : ''}${wk} kg por semana. Con la fórmula tu mantenimiento sale ≈ ${fmtN(a.base)} kcal.</p>
+        <button onclick="applyTdeeAdj(${a.adj})" class="w-full bg-sky-600 text-white font-bold py-2 rounded-xl text-xs cursor-pointer hover:bg-sky-700">Ajustar mis calorías (${a.adj > 0 ? '+' : '−'}${Math.abs(a.adj)} kcal)</button>
+        <p class="text-[10px] text-sky-800/70">Es una estimación: si te dejas comidas sin apuntar, el gasto real será mayor.</p></div>`;
+}
+function applyTdeeAdj(v) {
+    const p = getProfile(); if (!p) return;
+    DB.setItem('dreamfit_profile', JSON.stringify({ ...p, tdeeAdj: v, ts: Date.now() }));
+    renderGoalCard(); renderNutriCard(); renderMenuCard(); renderTodayLive();
+    showToast(v ? 'Calorías ajustadas a tu gasto real' : 'Vuelves a la estimación por fórmula');
+}
 
 // Agua: sin datos del cuerpo se mantiene la meta de siempre (4 vasos ≈ 2 L)
 function waterGoal() { const n = myNutrition(); return n ? n.glasses : 4; }
@@ -87,6 +123,7 @@ function renderNutriCard() {
     const li = a => a.map(x => `<li>${x}</li>`).join('');
     el.innerHTML = `<div class="flex justify-between items-center gap-2"><h2 class="font-bold text-base text-slate-900 flex items-center gap-2"><i class="fa-solid fa-bullseye text-emerald-600" aria-hidden="true"></i> Tu objetivo nutricional</h2><span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full whitespace-nowrap">${g.emoji} ${g.label}</span></div>
         ${nutriNumbersHtml(n)}
+        ${adaptiveHtml()}
         <div><p class="text-xs font-bold text-slate-700 mb-1">Reparto orientativo del día</p>${rows}</div>
         <details class="text-xs text-slate-600 bg-slate-50 rounded-xl p-3"><summary class="cursor-pointer font-semibold text-slate-800">Alimentos que te convienen</summary>
             <p class="mt-2 text-emerald-800">💡 ${FOOD_TIPS[p.goal]}</p>
@@ -94,7 +131,7 @@ function renderNutriCard() {
             <p class="font-bold text-slate-700 mt-2">Hidratos</p><ul class="list-disc pl-5">${li(FOOD_GUIDE.carbs)}</ul>
             <p class="font-bold text-slate-700 mt-2">Grasas saludables</p><ul class="list-disc pl-5">${li(FOOD_GUIDE.fats)}</ul></details>
         ${n.notes.map(t => `<p class="text-[11px] text-amber-700 bg-amber-50 rounded-lg p-2">${t}</p>`).join('')}
-        <p class="text-[10px] text-slate-400">Estimación orientativa (fórmula Mifflin-St Jeor). No sustituye el consejo de un profesional sanitario. El generador con IA usa estos objetivos por comida.</p>`;
+        <p class="text-[10px] text-slate-400">Estimación orientativa (fórmula ${n.method === 'katch' ? 'Katch-McArdle, con tu % de grasa' : 'Mifflin-St Jeor'}; el error habitual es de ±10 %). No sustituye el consejo de un profesional sanitario. El generador con IA usa estos objetivos por comida.</p>`;
 }
 
 async function updateWeight() {

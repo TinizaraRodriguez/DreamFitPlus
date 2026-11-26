@@ -100,3 +100,11 @@ La web **nunca** habla con Gemini directamente ni lleva la clave: llama a una fu
 - Con el plan gratuito de Gemini hay límites de uso; el límite diario por usuario evita sorpresas. No actives facturación en Google Cloud para esto.
 - A Gemini solo se envían los ingredientes, el momento, el sabor y las alergias/restricciones que escriba la persona. **Nunca** su nombre, email ni datos de entreno. Aun así, las alergias son datos de salud: avisa a tus amigos y revisa las condiciones de uso de datos del plan gratuito de Gemini, que pueden permitir a Google usar las peticiones para mejorar sus productos.
 - Las recetas de la IA son aproximadas y pueden fallar: la web lo avisa y recuerda revisar alergias.
+
+
+## Alimentos con foto del envase (catálogo compartido)
+
+1. En Supabase → **SQL Editor → New query**, pega `supabase/04-alimentos.sql` y pulsa **Run** (crea la tabla de alimentos compartida, el cupo diario y las funciones seguras).
+2. **Edge Functions → Deploy a new function → Via Editor**, nómbrala exactamente `scan-food`, pega `supabase/functions/scan-food/index.ts` y despliega (misma clave `GEMINI_API_KEY` que ya tienes; desactiva «Verify JWT» si da 401). Opcional: secreto `SCAN_DAILY_LIMIT` (fotos por usuario y día, por defecto 20).
+3. En la app: **Hoy → Añadir comida → «Calcula con alimentos»**: busca un alimento (si alguien ya lo escaneó, sale directo), o pulsa 📷 y haz una foto de la tabla nutricional. Revisa lo leído, guarda, y escribe «2 lonchas» o «150 g». Sin sesión o sin foto se usan valores genéricos aproximados.
+4. Las fotos no se guardan. Si un alimento tiene datos erróneos, el botón «Estos datos están mal» lo oculta tras 3 avisos.
