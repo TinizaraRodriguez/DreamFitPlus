@@ -108,3 +108,13 @@ La web **nunca** habla con Gemini directamente ni lleva la clave: llama a una fu
 2. **Edge Functions → Deploy a new function → Via Editor**, nómbrala exactamente `scan-food`, pega `supabase/functions/scan-food/index.ts` y despliega (misma clave `GEMINI_API_KEY` que ya tienes; desactiva «Verify JWT» si da 401). Opcional: secreto `SCAN_DAILY_LIMIT` (fotos por usuario y día, por defecto 20).
 3. En la app: **Hoy → Añadir comida → «Calcula con alimentos»**: busca un alimento (si alguien ya lo escaneó, sale directo), o pulsa 📷 y haz una foto de la tabla nutricional. Revisa lo leído, guarda, y escribe «2 lonchas» o «150 g». Sin sesión o sin foto se usan valores genéricos aproximados.
 4. Las fotos no se guardan. Si un alimento tiene datos erróneos, el botón «Estos datos están mal» lo oculta tras 3 avisos.
+
+
+## Registros por fila (pesos, fuerza, días, historial, carreras y medidas)
+
+Antes cada uno de esos datos viajaba a la nube como un JSON entero que crecía con los años. Ahora cada registro es **una fila** de la tabla `records`: cambiar un peso envía solo ese peso, y se pueden hacer consultas por fecha.
+
+1. En Supabase → **SQL Editor → New query**, pega `supabase/05-registros.sql` y pulsa **Run**.
+2. Nada más. La primera vez que cada dispositivo sincroniza, la app convierte sola lo que ya tenías (sin perder nada) y borra de la nube el JSON antiguo **solo después** de haber subido todas las filas.
+3. Si todavía no has ejecutado el SQL, la app sigue funcionando como antes con el JSON.
+4. Un dispositivo con la versión antigua de la web (sin recargar) no verá los cambios nuevos de esos datos hasta que se actualice: basta recargar la página.
